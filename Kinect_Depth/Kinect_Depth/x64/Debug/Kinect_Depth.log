@@ -1,0 +1,19 @@
+﻿生成启动时间为 2017/6/6 13:50:31。
+     1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\Kinect_Depth\Kinect_Depth.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\inc" /ZI /nologo /W3 /WX- /sdl /Od /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"x64\Debug\Kinect_Depth.pch" /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Kinect_Depth.cpp
+         Kinect_Depth.cpp
+     1>e:\research\mobile welding robot\control\kinect\kinect_depth\kinect_depth\kinect_depth.cpp(139): warning C4244: “初始化”: 从“__int64”转换到“int”，可能丢失数据
+     1>e:\research\mobile welding robot\control\kinect\kinect_depth\kinect_depth\kinect_depth.cpp(195): warning C4800: “BOOL”: 将值强制为布尔值“true”或“false”(性能警告)
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\x64\Debug\Kinect_Depth.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\lib\x86" Kinect10.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\x64\Debug\Kinect_Depth.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\x64\Debug\Kinect_Depth.lib" /MACHINE:X64 x64\Debug\Kinect_Depth.obj
+         x64\Debug\stdafx.obj
+     1>Kinect_Depth.obj : error LNK2019: 无法解析的外部符号 __imp_NuiGetSensorCount，该符号在函数 "int __cdecl CreateFirstConnected(void)" (?CreateFirstConnected@@YAHXZ) 中被引用
+     1>Kinect_Depth.obj : error LNK2019: 无法解析的外部符号 __imp_NuiCreateSensorByIndex，该符号在函数 "int __cdecl CreateFirstConnected(void)" (?CreateFirstConnected@@YAHXZ) 中被引用
+     1>E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\lib\x86\Kinect10.lib : warning LNK4272: 库计算机类型“X86”与目标计算机类型“x64”冲突
+     1>E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\x64\Debug\Kinect_Depth.exe : fatal error LNK1120: 2 个无法解析的外部命令
+     1>已完成生成项目“E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Depth\Kinect_Depth\Kinect_Depth.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:03.70

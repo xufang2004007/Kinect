@@ -1,0 +1,15 @@
+﻿生成启动时间为 2017/6/2 17:53:39。
+     1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\DepthBasics-D2D.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt DepthBasics.cpp
+         DepthBasics.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Debug\DepthBasics-D2D.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib Kinect10.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Debug\DepthBasics-D2D.pdb" /SUBSYSTEM:WINDOWS /STACK:"10000000","10000000" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Debug\DepthBasics-D2D.lib" /MACHINE:X86 Debug\DepthBasics.res
+         Debug\ImageRenderer.obj
+         Debug\DepthBasics.obj
+         DepthBasics-D2D.vcxproj -> E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Debug\DepthBasics-D2D.exe
+     1>已完成生成项目“E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\DepthBasics-D2D.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:01.25
