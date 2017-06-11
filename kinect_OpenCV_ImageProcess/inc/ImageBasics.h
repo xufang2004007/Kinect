@@ -44,3 +44,8 @@ HANDLE					m_pVideoStreamHandle;
 HANDLE					m_hEvNuiProcessStop;							//用于结束的事件对象; 
 
 BYTE	                m_depthRGBX[cDepthWidth*cDepthHeight*cBytesPerPixel];
+
+//最远距离(mm)
+static const int		MAX_DISTANCE = 3500;
+//最近距离(mm)
+static const int		MIN_DISTANCE = 200;

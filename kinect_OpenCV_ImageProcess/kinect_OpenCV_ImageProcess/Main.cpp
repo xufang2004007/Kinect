@@ -7,6 +7,8 @@
 #include "stdafx.h"
 #include <iostream>						// 数据流
 #include <cmath>
+#include <vector>
+#include <stdio.h>
 //----------------------------【kinec相关t头文件】---------------------------------
 #include "nuiapi.h"						// kinetc数据api
 #include "Imagebasics.h"				// 深度图像基础定义
@@ -15,6 +17,7 @@
 //----------------------------【opencv头文件】-------------------------------------
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 
 //----------------------------【命名空间定义】-------------------------------------
 using namespace std;
@@ -33,13 +36,18 @@ int main(int argc, char * argv[])
 	if (connect_hr) 
 	{
 		m_hEvNuiProcessStop = CreateEvent(NULL, TRUE, FALSE, NULL);		//用于结束的事件对象
-																		 
-		HANDLE m_hProcesss = CreateThread(NULL, 0, KinectDataThread, 0, 0, 0); //开启一个线程---用于读取彩色、深度数据； 
-		while (m_hEvNuiProcessStop != NULL)
+		//																 
+		//HANDLE m_hProcesss = CreateThread(NULL, 0, KinectDataThread, 0, 0, 0); //开启一个线程---用于读取彩色、深度数据； 
+		//while (m_hEvNuiProcessStop != NULL)
+		//{
+		//	WaitForSingleObject(m_hProcesss, INFINITE);
+		//	CloseHandle(m_hProcesss);
+		//	m_hProcesss = NULL;
+		//}
+		while (1)
 		{
-			WaitForSingleObject(m_hProcesss, INFINITE);
-			CloseHandle(m_hProcesss);
-			m_hProcesss = NULL;
+			Color_Process(m_pVideoStreamHandle);
+			Depth_Process(m_pDepthStreamHandle);
 		}
 	}
 	NuiShutdown();
@@ -126,97 +134,101 @@ BOOL CreateFirstConnected()
 //获取彩色图像数据，并进行显示  
 int Color_Process(HANDLE h)
 {
-	const NUI_IMAGE_FRAME * pImageFrame = NULL;
-	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame);
-	if (FAILED(hr))
-	{
-		cout << "GetColor Image Frame Failed" << endl;
-		return-1;
-	}
-	INuiFrameTexture* pTexture = pImageFrame->pFrameTexture;
+	const NUI_IMAGE_FRAME * pImageFrame_Color = NULL;
+	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Color);
+	//if (FAILED(hr))
+	//{
+	//	cout << "GetColor Image Frame Failed" << endl;
+	//	return-1;
+	//}
+	INuiFrameTexture* pTexture = pImageFrame_Color->pFrameTexture;
 	NUI_LOCKED_RECT LockedRect;
 	pTexture->LockRect(0, &LockedRect, NULL, 0);
 	if (LockedRect.Pitch != 0)
 	{
 		BYTE* pBuffer = (BYTE*)LockedRect.pBits;
 		//OpenCV显示彩色视频
-		if (true)
-		{
-			Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);
-			imshow("Color", temp);
-		}
+
+		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);
+		imshow("Color", temp);
+
 		int c = waitKey(1);//按下ESC结束  
 						   //如果在视频界面按下ESC,q,Q都会导致整个程序退出  
 		if (c == 27 || c == 'q' || c == 'Q')
 		{
-			SetEvent(m_hEvNuiProcessStop);
+			vector<int>compression_params;
+			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
+			compression_params.push_back(95);
+			imwrite("a.jpg", temp, compression_params);
 		}
 	}
-	NuiImageStreamReleaseFrame(h, pImageFrame);
+	NuiImageStreamReleaseFrame(h, pImageFrame_Color);
 	return 0;
 }
 
 //获取深度图像数据，并进行显示  
 int Depth_Process(HANDLE h)
 {
-	const NUI_IMAGE_FRAME * pImageFrame = NULL;
-	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame);
-	if (FAILED(hr))
-	{
-		cout << "GetDepth Image Frame Failed" << endl;
-		return-1;
-	}
-	INuiFrameTexture* pTexture = pImageFrame->pFrameTexture;
+	const NUI_IMAGE_FRAME * pImageFrame_Depth = NULL;
+	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Depth);
+	//if (FAILED(hr))
+	//{
+	//	cout << "GetDepth Image Frame Failed" << endl;
+	//	return-1;
+	//}
+	INuiFrameTexture* pTexture = pImageFrame_Depth->pFrameTexture;
 	NUI_LOCKED_RECT LockedRect;
 	pTexture->LockRect(0, &LockedRect, NULL, 0);
 	if (LockedRect.Pitch != 0)
 	{
 		BYTE* pBuff = (BYTE*)LockedRect.pBits;
 		//OpenCV显示深度视频
-		if (true)
-		{
-			Mat depthTmp(cDepthHeight, cDepthWidth, CV_16U, pBuff);
-			imshow("Depth", depthTmp);
-		}
+
+		Mat depthTmp(cDepthHeight, cDepthWidth, CV_16U, pBuff);
+		imshow("Depth", depthTmp);
+
 		int c = waitKey(1);//按下ESC结束  
 		if (c == 27 || c == 'q' || c == 'Q')
 		{
-			SetEvent(m_hEvNuiProcessStop);
+			vector<int>compression_params;
+			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
+			compression_params.push_back(95);
+			imwrite("depth.jpg", depthTmp, compression_params);
 		}
 	}
-	NuiImageStreamReleaseFrame(h, pImageFrame);
+	NuiImageStreamReleaseFrame(h, pImageFrame_Depth);
 	return 0;
 }
 
-DWORD WINAPI KinectDataThread(LPVOID pParam)
-{
-	cout << "进入进程" << endl;
-	HANDLE hEvents[3] = { m_hEvNuiProcessStop,m_hNextVideoFrameEvent,
-		m_hNextDepthFrameEvent};
-	while (1)
-	{
-		cout << "1" << endl;
-		int nEventIdx;
-		nEventIdx = WaitForMultipleObjects(sizeof(hEvents) / sizeof(hEvents[0]),
-			hEvents, FALSE, 100);
-		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hEvNuiProcessStop, 0))
-		{
-			cout << "2" << endl;
-			break;
-		}
-		//Process signal events  
-		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextVideoFrameEvent, 0))
-		{
-			Color_Process(m_pVideoStreamHandle);
-		}
-		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextDepthFrameEvent, 0))
-		{
-			Depth_Process(m_pDepthStreamHandle);
-		}
-	}
-	CloseHandle(m_hEvNuiProcessStop);
-	m_hEvNuiProcessStop = NULL;
-	CloseHandle(m_hNextDepthFrameEvent);
-	CloseHandle(m_hNextVideoFrameEvent);
-	return 0;
-}
+//DWORD WINAPI KinectDataThread(LPVOID pParam)
+//{
+//	cout << "进入进程" << endl;
+//	HANDLE hEvents[3] = { m_hEvNuiProcessStop,m_hNextVideoFrameEvent,
+//		m_hNextDepthFrameEvent};
+//	while (1)
+//	{
+//		cout << "1" << endl;
+//		int nEventIdx;
+//		nEventIdx = WaitForMultipleObjects(sizeof(hEvents) / sizeof(hEvents[0]),
+//			hEvents, FALSE, 100);
+//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hEvNuiProcessStop, 0))
+//		{
+//			cout << "2" << endl;
+//			break;
+//		}
+//		//Process signal events  
+//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextVideoFrameEvent, 0))
+//		{
+//			Color_Process(m_pVideoStreamHandle);
+//		}
+//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextDepthFrameEvent, 0))
+//		{
+//			Depth_Process(m_pDepthStreamHandle);
+//		}
+//	}
+//	CloseHandle(m_hEvNuiProcessStop);
+//	m_hEvNuiProcessStop = NULL;
+//	CloseHandle(m_hNextDepthFrameEvent);
+//	CloseHandle(m_hNextVideoFrameEvent);
+//	return 0;
+//}
