@@ -238,7 +238,7 @@ int DrawSkeleton()
 		}  
 	}  
 	//Has skeletons!  
-	if(bFoundSkeleton )  
+	if(bFoundSkeleton)  
 	{  
 		NuiTransformSmooth(&SkeletonFrame,NULL);  
 		//cout<<"skeleton num:"<<NUI_SKELETON_COUNT<<endl;
@@ -360,6 +360,8 @@ int main(int argc,char * argv[])
 		cout<<"Could not open image stream video"<<endl;  
 		return hr;  
 	}  
+
+	//打开KINECT设备的深度图信息通道
 	m_hNextDepthFrameEvent  = CreateEvent( NULL, TRUE, FALSE, NULL );  
 	m_pDepthStreamHandle    = NULL;  
 	hr= NuiImageStreamOpen(NUI_IMAGE_TYPE_DEPTH_AND_PLAYER_INDEX,depthResolution, 0,
@@ -369,6 +371,8 @@ int main(int argc,char * argv[])
 		cout<<"Could not open depth stream video"<<endl;  
 		return hr;  
 	}  
+
+	//打开KINECT设备的骨骼图信息通道
 	m_hNextSkeletonEvent	= CreateEvent( NULL, TRUE, FALSE, NULL );
 
 	//骨骼跟踪事件flag设置： 

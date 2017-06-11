@@ -122,8 +122,8 @@ void ProcessDepth()
 	if (LockedRect.Pitch != 0)
 	{
 		int i = 0; 
-		//Vector4 *pSkeletonPoint[640*480];
-		//NUI_DEPTH_IMAGE_POINT *Data_In_Pixel[640*480];
+		/*Vector4 *pSkeletonPoint[640*480];
+		NUI_DEPTH_IMAGE_POINT *Data_In_Pixel[640*480];*/
 
 		// Get the min and max reliable depth for the current frame
 		int minDepth = (nearMode ? NUI_IMAGE_DEPTH_MINIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MINIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
@@ -158,7 +158,7 @@ void ProcessDepth()
 			//ptrData_In_Pixel->Depth = depth;						// 保存深度值
 			
 			//hr = DepthCoordinate->MapDepthPointToSkeletonPoint(NUI_IMAGE_RESOLUTION_640x480, Data_In_Pixel[X_Pixel * 640 + Y_Pixel], pSkeletonPoint[X_Pixel * 640 + Y_Pixel]);
-			//
+			////
 			//if (S_OK == hr)
 			//{
 			//	cout << pSkeletonPoint[X_Pixel * 640 + Y_Pixel]->x << pSkeletonPoint[X_Pixel * 640 + Y_Pixel]->y << pSkeletonPoint[X_Pixel * 640 + Y_Pixel]->z << endl;

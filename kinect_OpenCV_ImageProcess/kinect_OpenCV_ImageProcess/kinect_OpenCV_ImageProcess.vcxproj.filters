@@ -24,12 +24,15 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Kinect_function.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="kinect_OpenCV_ImageProcess.cpp">
+    <ClCompile Include="Main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
