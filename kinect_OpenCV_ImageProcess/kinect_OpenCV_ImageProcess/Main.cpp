@@ -23,11 +23,13 @@
 using namespace std;
 using namespace cv;
 
-//----------------------------【函数声明】-----------------------------------------
+//----------------------------【函数与全局变量声明】-----------------------------------------
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
 DWORD WINAPI KinectDataThread(LPVOID pParam);	// kinect读取数据流线程
+
+BOOL process_on;
 
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[]) 
@@ -44,7 +46,8 @@ int main(int argc, char * argv[])
 		//	CloseHandle(m_hProcesss);
 		//	m_hProcesss = NULL;
 		//}
-		while (1)
+		process_on = TRUE;
+		while (process_on)
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
@@ -136,14 +139,14 @@ int Color_Process(HANDLE h)
 {
 	const NUI_IMAGE_FRAME * pImageFrame_Color = NULL;
 	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Color);
-	//if (FAILED(hr))
-	//{
-	//	cout << "GetColor Image Frame Failed" << endl;
-	//	return-1;
-	//}
-	INuiFrameTexture* pTexture = pImageFrame_Color->pFrameTexture;
+	if (FAILED(hr))
+	{
+		//cout << "GetColor Image Frame Failed" << endl;
+		return-1;
+	}
+	INuiFrameTexture* pTexture_Color = pImageFrame_Color->pFrameTexture;
 	NUI_LOCKED_RECT LockedRect;
-	pTexture->LockRect(0, &LockedRect, NULL, 0);
+	pTexture_Color->LockRect(0, &LockedRect, NULL, 0);
 	if (LockedRect.Pitch != 0)
 	{
 		BYTE* pBuffer = (BYTE*)LockedRect.pBits;
@@ -154,13 +157,17 @@ int Color_Process(HANDLE h)
 
 		int c = waitKey(1);//按下ESC结束  
 						   //如果在视频界面按下ESC,q,Q都会导致整个程序退出  
-		if (c == 27 || c == 'q' || c == 'Q')
+		if (c == 'q' || c == 'Q')
 		{
 			vector<int>compression_params;
 			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
 			compression_params.push_back(95);
 			imwrite("a.jpg", temp, compression_params);
 		}
+		//if (c == 27)
+		//{
+		//	process_on = FALSE;
+		//}
 	}
 	NuiImageStreamReleaseFrame(h, pImageFrame_Color);
 	return 0;
@@ -171,14 +178,14 @@ int Depth_Process(HANDLE h)
 {
 	const NUI_IMAGE_FRAME * pImageFrame_Depth = NULL;
 	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Depth);
-	//if (FAILED(hr))
-	//{
-	//	cout << "GetDepth Image Frame Failed" << endl;
-	//	return-1;
-	//}
-	INuiFrameTexture* pTexture = pImageFrame_Depth->pFrameTexture;
+	if (FAILED(hr))
+	{
+		//cout << "GetDepth Image Frame Failed" << endl;
+		return-1;
+	}
+	INuiFrameTexture* pTexture_Depth = pImageFrame_Depth->pFrameTexture;
 	NUI_LOCKED_RECT LockedRect;
-	pTexture->LockRect(0, &LockedRect, NULL, 0);
+	pTexture_Depth->LockRect(0, &LockedRect, NULL, 0);
 	if (LockedRect.Pitch != 0)
 	{
 		BYTE* pBuff = (BYTE*)LockedRect.pBits;
@@ -188,13 +195,17 @@ int Depth_Process(HANDLE h)
 		imshow("Depth", depthTmp);
 
 		int c = waitKey(1);//按下ESC结束  
-		if (c == 27 || c == 'q' || c == 'Q')
+		if (c == 'q' || c == 'Q')
 		{
 			vector<int>compression_params;
 			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
 			compression_params.push_back(95);
 			imwrite("depth.jpg", depthTmp, compression_params);
 		}
+		//if (c == 27) 
+		//{
+		//	process_on = FALSE;
+		//}
 	}
 	NuiImageStreamReleaseFrame(h, pImageFrame_Depth);
 	return 0;
