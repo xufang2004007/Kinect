@@ -1,6 +1,8 @@
-//---------------------------------------------------------------------------------
-	// 该程序用opencv和kinect sdk共同完成kinect数据读取和处理工作
-	// 最终生成机器人的路径规划多项式系数，并完成与TwinCAT的数据交互
+//----------------------------【程序的功能】-----------------------------------------------------
+	// 1、用opencv和kinect sdk共同完成kinect彩色和深度图数据读取和处理工作；
+	// 2、完成深度图像与彩色图像的对齐，进行特征提识别目标物；
+	// 3、根据目标物的方位生成机器人路径规划；
+	// 4、最终生成机器人的路径规划多项式系数，并完成与TwinCAT的数据交互
 //---------------------------------------------------------------------------------
 
 //----------------------------【windows头文件】------------------------------------
@@ -17,7 +19,7 @@
 //----------------------------【opencv头文件】-------------------------------------
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-#include <opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>			// 包含所有的opencv2头文件
 
 //----------------------------【命名空间定义】-------------------------------------
 using namespace std;
@@ -27,30 +29,22 @@ using namespace cv;
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
-DWORD WINAPI KinectDataThread(LPVOID pParam);	// kinect读取数据流线程
-
-BOOL process_on;
+int i = 0;										// 保存彩色图的序号
 
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[]) 
 {
 	int connect_hr = CreateFirstConnected();							// 进行连接检测程序
+
+	m_depthRGBX = new BYTE[cDepthWidth*cDepthHeight*cBytesPerPixel];
+
 	if (connect_hr) 
 	{
-		m_hEvNuiProcessStop = CreateEvent(NULL, TRUE, FALSE, NULL);		//用于结束的事件对象
-		//																 
-		//HANDLE m_hProcesss = CreateThread(NULL, 0, KinectDataThread, 0, 0, 0); //开启一个线程---用于读取彩色、深度数据； 
-		//while (m_hEvNuiProcessStop != NULL)
-		//{
-		//	WaitForSingleObject(m_hProcesss, INFINITE);
-		//	CloseHandle(m_hProcesss);
-		//	m_hProcesss = NULL;
-		//}
-		process_on = TRUE;
-		while (process_on)
+		while (1)
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
+			int m = waitKey(1);//按下ESC结束
 		}
 	}
 	NuiShutdown();
@@ -137,109 +131,121 @@ BOOL CreateFirstConnected()
 //获取彩色图像数据，并进行显示  
 int Color_Process(HANDLE h)
 {
-	const NUI_IMAGE_FRAME * pImageFrame_Color = NULL;
+	const NUI_IMAGE_FRAME * pImageFrame_Color;						// 定义彩色帧
 	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Color);
 	if (FAILED(hr))
 	{
 		//cout << "GetColor Image Frame Failed" << endl;
-		return-1;
+		return -1;
 	}
+
 	INuiFrameTexture* pTexture_Color = pImageFrame_Color->pFrameTexture;
 	NUI_LOCKED_RECT LockedRect;
 	pTexture_Color->LockRect(0, &LockedRect, NULL, 0);
+
 	if (LockedRect.Pitch != 0)
 	{
-		BYTE* pBuffer = (BYTE*)LockedRect.pBits;
+		BYTE* pBuffer = (BYTE*)LockedRect.pBits;					// 按位存储的彩色图片
+		
 		//OpenCV显示彩色视频
-
-		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);
+		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);		// 定义画布，说明彩色图片是8位4通道，也就是一个像素占8*4/8=4个字节
 		imshow("Color", temp);
 
-		int c = waitKey(1);//按下ESC结束  
-						   //如果在视频界面按下ESC,q,Q都会导致整个程序退出  
-		if (c == 'q' || c == 'Q')
+		int c = waitKey(10);										// 等待键盘输入
+		if (c == 'q' || c == 'Q')									// 若按键Q，则保存彩色图	
 		{
 			vector<int>compression_params;
-			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
-			compression_params.push_back(95);
-			imwrite("a.jpg", temp, compression_params);
+			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);	// JPG格式图片的压缩级别    
+			compression_params.push_back(95);						// 0到100的图片质量（CV_IMWRITE_JPEG_QUALITY），默认值为95
+
+			imwrite(ImageName[i++], temp, compression_params);		// 保存图片，一共十张，名称再ImageBasics.h中定义
+
+			cout << "get kincet " << i << " Color Image" << endl;
+			
+			if (i >= sizeof(ImageName)/sizeof(ImageName[0]))
+			{
+				i = 0;
+			}
 		}
-		//if (c == 27)
-		//{
-		//	process_on = FALSE;
-		//}
 	}
-	NuiImageStreamReleaseFrame(h, pImageFrame_Color);
+	NuiImageStreamReleaseFrame(h, pImageFrame_Color);				// 释放图像帧
 	return 0;
 }
 
 //获取深度图像数据，并进行显示  
 int Depth_Process(HANDLE h)
 {
-	const NUI_IMAGE_FRAME * pImageFrame_Depth = NULL;
-	HRESULT hr = NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Depth);
+	NUI_IMAGE_FRAME  pImageFrame_Depth;								// 定义深度帧
+	HRESULT hr = m_pNuiSensor->NuiImageStreamGetNextFrame(h, 0, &pImageFrame_Depth);
 	if (FAILED(hr))
 	{
-		//cout << "GetDepth Image Frame Failed" << endl;
-		return-1;
+		return -1;
 	}
-	INuiFrameTexture* pTexture_Depth = pImageFrame_Depth->pFrameTexture;
+	
+	BOOL nearMode = FALSE;											// 关闭近景模式
+	INuiFrameTexture* pTexture_Depth;								// 定义深度纹理
+
+	hr = m_pNuiSensor->NuiImageFrameGetDepthImagePixelFrameTexture(
+		m_pDepthStreamHandle, &pImageFrame_Depth, &nearMode, &pTexture_Depth);
+
+	if (FAILED(hr))
+	{
+		goto ReleaseFrame;
+	}
+	
 	NUI_LOCKED_RECT LockedRect;
 	pTexture_Depth->LockRect(0, &LockedRect, NULL, 0);
+
 	if (LockedRect.Pitch != 0)
 	{
-		BYTE* pBuff = (BYTE*)LockedRect.pBits;
-		//OpenCV显示深度视频
+		//int minDepth = (nearMode ? NUI_IMAGE_DEPTH_MINIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MINIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
+		//int maxDepth = (nearMode ? NUI_IMAGE_DEPTH_MAXIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MAXIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
+		//深度范围在800-4000范围内数据比较正常，建议使用在1200-3810范围内的深度值
+		int minDepth = NUI_IMAGE_DEPTH_MINIMUM >> NUI_IMAGE_PLAYER_INDEX_SHIFT;		// 最小深度距离800
+		int maxDepth = NUI_IMAGE_DEPTH_MAXIMUM >> NUI_IMAGE_PLAYER_INDEX_SHIFT;		// 最高深度距离4000
 
-		Mat depthTmp(cDepthHeight, cDepthWidth, CV_16U, pBuff);
+		BYTE * rgbrun = m_depthRGBX;												// 将深度图首指针给rgbrun，方便按位保存图片
+		const NUI_DEPTH_IMAGE_PIXEL * pBufferRun = reinterpret_cast<const NUI_DEPTH_IMAGE_PIXEL *>(LockedRect.pBits);
+		const NUI_DEPTH_IMAGE_PIXEL * pBufferEnd = pBufferRun + (cDepthWidth * cDepthHeight);
+
+		while (pBufferRun < pBufferEnd)
+		{
+			// 得到每个像素点的深度值
+			USHORT depth = pBufferRun->depth;
+
+			// 将每个像素点的深度值转化为0-255的RGB值
+			BYTE intensity = static_cast<BYTE>(depth >= minDepth && depth <= maxDepth ? depth % 256 : 0);
+
+			// Write out blue byte
+			*(rgbrun++) = intensity;
+
+			// Write out green byte
+			*(rgbrun++) = intensity;
+
+			// Write out red byte
+			*(rgbrun++) = intensity;
+
+			++rgbrun;
+
+			// Increment our index into the Kinect's depth buffer
+			++pBufferRun;
+		}
+
+		Mat depthTmp(cDepthHeight, cDepthWidth, CV_8UC4, m_depthRGBX);	// 定义画布，说明深度图片是8位4通道，也就是一个像素占8*4/8=4个字节
+
 		imshow("Depth", depthTmp);
 
 		int c = waitKey(1);//按下ESC结束  
 		if (c == 'q' || c == 'Q')
 		{
 			vector<int>compression_params;
-			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY); //PNG格式图片的压缩级别    
+			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);		// JPG格式图片的压缩级别    
 			compression_params.push_back(95);
-			imwrite("depth.jpg", depthTmp, compression_params);
+			imwrite("Depth.jpg", depthTmp, compression_params);
 		}
-		//if (c == 27) 
-		//{
-		//	process_on = FALSE;
-		//}
 	}
-	NuiImageStreamReleaseFrame(h, pImageFrame_Depth);
+ReleaseFrame:
+	m_pNuiSensor->NuiImageStreamReleaseFrame(h, &pImageFrame_Depth);
 	return 0;
 }
 
-//DWORD WINAPI KinectDataThread(LPVOID pParam)
-//{
-//	cout << "进入进程" << endl;
-//	HANDLE hEvents[3] = { m_hEvNuiProcessStop,m_hNextVideoFrameEvent,
-//		m_hNextDepthFrameEvent};
-//	while (1)
-//	{
-//		cout << "1" << endl;
-//		int nEventIdx;
-//		nEventIdx = WaitForMultipleObjects(sizeof(hEvents) / sizeof(hEvents[0]),
-//			hEvents, FALSE, 100);
-//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hEvNuiProcessStop, 0))
-//		{
-//			cout << "2" << endl;
-//			break;
-//		}
-//		//Process signal events  
-//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextVideoFrameEvent, 0))
-//		{
-//			Color_Process(m_pVideoStreamHandle);
-//		}
-//		if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextDepthFrameEvent, 0))
-//		{
-//			Depth_Process(m_pDepthStreamHandle);
-//		}
-//	}
-//	CloseHandle(m_hEvNuiProcessStop);
-//	m_hEvNuiProcessStop = NULL;
-//	CloseHandle(m_hNextDepthFrameEvent);
-//	CloseHandle(m_hNextVideoFrameEvent);
-//	return 0;
-//}

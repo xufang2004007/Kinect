@@ -1,4 +1,4 @@
-﻿生成启动时间为 2017/6/12 10:20:28。
+﻿生成启动时间为 2017/6/12 12:24:25。
      1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\inc" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"Release\kinect_OpenCV_ImageProcess.pch" /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
@@ -7,13 +7,13 @@
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\Release\kinect_OpenCV_ImageProcess.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\lib\x86" kinect10.lib opencv_calib3d2413.lib opencv_contrib2413.lib opencv_core2413.lib opencv_features2d2413.lib opencv_flann2413.lib opencv_gpu2413.lib opencv_haartraining_engine.lib opencv_highgui2413.lib opencv_imgproc2413.lib opencv_legacy2413.lib opencv_ml2413.lib opencv_nonfree2413.lib opencv_objdetect2413.lib opencv_ocl2413.lib opencv_photo2413.lib opencv_stitching2413.lib opencv_superres2413.lib opencv_ts2413.lib opencv_video2413.lib opencv_videostab2413.lib opencv_world2413.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\Release\kinect_OpenCV_ImageProcess.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\Release\kinect_OpenCV_ImageProcess.lib" /MACHINE:X86 /SAFESEH Release\Main.obj
          Release\stdafx.obj
          正在生成代码
-         4 of 371 functions ( 1.1%) were compiled, the rest were copied from previous compilation.
+         43 of 373 functions (11.5%) were compiled, the rest were copied from previous compilation.
            0 functions were new in current compilation
-           3 functions had inline decision re-evaluated but remain unchanged
+           2 functions had inline decision re-evaluated but remain unchanged
          已完成代码的生成
          kinect_OpenCV_ImageProcess.vcxproj -> E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\Release\kinect_OpenCV_ImageProcess.exe
      1>已完成生成项目“E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess.vcxproj”(Build 个目标)的操作。
 
 已成功生成。
 
-已用时间 00:00:01.87
+已用时间 00:00:01.77

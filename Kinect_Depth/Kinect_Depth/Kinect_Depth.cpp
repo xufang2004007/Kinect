@@ -129,6 +129,7 @@ void ProcessDepth()
 		int minDepth = (nearMode ? NUI_IMAGE_DEPTH_MINIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MINIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
 		int maxDepth = (nearMode ? NUI_IMAGE_DEPTH_MAXIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MAXIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
 
+		cout << "minDepth：" << minDepth << "   " << "maxDepth：" << maxDepth << endl;
 		// 将m_depthRGBX的首地址保存在rgbrun，方便赋值
 		BYTE * rgbrun = m_depthRGBX;
 
@@ -176,7 +177,7 @@ void ProcessDepth()
 			Data_In_Pixel[X_Pixel][Y_Pixel].intensity = intensity;	// 保存色素信息
 			//ptrData_In_Pixel->Depth = intensity;
 
-			cout << X_Pixel << " " << Y_Pixel << " " << depth  << " " << int(intensity) << endl;
+			//cout << X_Pixel << " " << Y_Pixel << " " << depth  << " " << int(intensity) << endl;
 			//cout << depth << " " << intensity << endl;
 
 			// Write out blue byte	写蓝色素位

@@ -8,12 +8,14 @@
 
 #include "resource.h"
 #include "NuiApi.h"
+#include <string>
 
 //struct Data_Pixel
 //{
 //	USHORT Depth;
 //	BYTE intensity;
 //};
+using namespace std;
 
 //---图像分辨率------------------------------------------
 static const int        cDepthWidth = 640;
@@ -39,13 +41,11 @@ INuiSensor*             m_pNuiSensor;
 //----各种内核事件和句柄----------------------------------------------------------------- 
 HANDLE					m_hNextDepthFrameEvent(INVALID_HANDLE_VALUE);
 HANDLE					m_pDepthStreamHandle(INVALID_HANDLE_VALUE); 
-HANDLE					m_hNextVideoFrameEvent;
-HANDLE					m_pVideoStreamHandle;
-HANDLE					m_hEvNuiProcessStop;							//用于结束的事件对象; 
+HANDLE					m_hNextVideoFrameEvent(INVALID_HANDLE_VALUE);
+HANDLE					m_pVideoStreamHandle(INVALID_HANDLE_VALUE);
 
-BYTE	                m_depthRGBX[cDepthWidth*cDepthHeight*cBytesPerPixel];
+//----深度图画布-----------------------------------------------------------------
+BYTE*	                m_depthRGBX;
 
-//最远距离(mm)
-static const int		MAX_DISTANCE = 3500;
-//最近距离(mm)
-static const int		MIN_DISTANCE = 200;
+//---ColorImage保存名称数组-------------------------------
+string ImageName[10] = { "Kinect1.jpg","Kinect2.jpg", "Kinect3.jpg", "Kinect4.jpg", "Kinect5.jpg", "Kinect6.jpg", "Kinect7.jpg", "Kinect8.jpg", "Kinect9.jpg", "Kinect10.jpg" };
