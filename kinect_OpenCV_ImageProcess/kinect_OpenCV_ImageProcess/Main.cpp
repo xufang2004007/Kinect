@@ -29,7 +29,11 @@ using namespace cv;
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
+int Mapping_Depth_To_Color(void);				// 深度图映射到彩色图
+void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
+
 int i = 0;										// 保存彩色图的序号
+Mat Copy_Color;
 
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[]) 
@@ -44,7 +48,6 @@ int main(int argc, char * argv[])
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
-			int m = waitKey(1);//按下ESC结束
 		}
 	}
 	NuiShutdown();
@@ -128,7 +131,7 @@ BOOL CreateFirstConnected()
 	return SUCCEEDED(hr);
 }
 
-//获取彩色图像数据，并进行显示  
+//-------------------------------获取彩色图像数据，并进行显示--------------------------------------------
 int Color_Process(HANDLE h)
 {
 	const NUI_IMAGE_FRAME * pImageFrame_Color;						// 定义彩色帧
@@ -149,6 +152,7 @@ int Color_Process(HANDLE h)
 		
 		//OpenCV显示彩色视频
 		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);		// 定义画布，说明彩色图片是8位4通道，也就是一个像素占8*4/8=4个字节
+		temp.copyTo(Copy_Color);
 		imshow("Color", temp);
 
 		int c = waitKey(10);										// 等待键盘输入
@@ -172,7 +176,7 @@ int Color_Process(HANDLE h)
 	return 0;
 }
 
-//获取深度图像数据，并进行显示  
+//-------------------------------获取深度图像数据，并进行显示-------------------------------------------- 
 int Depth_Process(HANDLE h)
 {
 	NUI_IMAGE_FRAME  pImageFrame_Depth;								// 定义深度帧
@@ -188,11 +192,12 @@ int Depth_Process(HANDLE h)
 	hr = m_pNuiSensor->NuiImageFrameGetDepthImagePixelFrameTexture(
 		m_pDepthStreamHandle, &pImageFrame_Depth, &nearMode, &pTexture_Depth);
 
+
 	if (FAILED(hr))
 	{
 		goto ReleaseFrame;
 	}
-	
+
 	NUI_LOCKED_RECT LockedRect;
 	pTexture_Depth->LockRect(0, &LockedRect, NULL, 0);
 
@@ -200,16 +205,26 @@ int Depth_Process(HANDLE h)
 	{
 		//int minDepth = (nearMode ? NUI_IMAGE_DEPTH_MINIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MINIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
 		//int maxDepth = (nearMode ? NUI_IMAGE_DEPTH_MAXIMUM_NEAR_MODE : NUI_IMAGE_DEPTH_MAXIMUM) >> NUI_IMAGE_PLAYER_INDEX_SHIFT;
+
 		//深度范围在800-4000范围内数据比较正常，建议使用在1200-3810范围内的深度值
 		int minDepth = NUI_IMAGE_DEPTH_MINIMUM >> NUI_IMAGE_PLAYER_INDEX_SHIFT;		// 最小深度距离800
 		int maxDepth = NUI_IMAGE_DEPTH_MAXIMUM >> NUI_IMAGE_PLAYER_INDEX_SHIFT;		// 最高深度距离4000
 
 		BYTE * rgbrun = m_depthRGBX;												// 将深度图首指针给rgbrun，方便按位保存图片
+
+		//const NUI_DEPTH_IMAGE_PIXEL * pixel = Pixel_Depth;
+
 		const NUI_DEPTH_IMAGE_PIXEL * pBufferRun = reinterpret_cast<const NUI_DEPTH_IMAGE_PIXEL *>(LockedRect.pBits);
+		const NUI_DEPTH_IMAGE_PIXEL * pBufferStart = pBufferRun;
 		const NUI_DEPTH_IMAGE_PIXEL * pBufferEnd = pBufferRun + (cDepthWidth * cDepthHeight);
 
 		while (pBufferRun < pBufferEnd)
 		{
+			//pixel = pBufferRun;
+			int Index_Pixel = pBufferRun - pBufferStart;							// 明确像素点是第几个
+			Pixel_Depth[Index_Pixel].depth = pBufferRun->depth;
+			Pixel_Depth[Index_Pixel].playerIndex = pBufferRun->playerIndex;
+
 			// 得到每个像素点的深度值
 			USHORT depth = pBufferRun->depth;
 
@@ -229,10 +244,11 @@ int Depth_Process(HANDLE h)
 
 			// Increment our index into the Kinect's depth buffer
 			++pBufferRun;
+			//++pixel;
 		}
 
 		Mat depthTmp(cDepthHeight, cDepthWidth, CV_8UC4, m_depthRGBX);	// 定义画布，说明深度图片是8位4通道，也就是一个像素占8*4/8=4个字节
-
+		
 		imshow("Depth", depthTmp);
 
 		int c = waitKey(1);//按下ESC结束  
@@ -243,9 +259,78 @@ int Depth_Process(HANDLE h)
 			compression_params.push_back(95);
 			imwrite("Depth.jpg", depthTmp, compression_params);
 		}
+
+		Mapping_Depth_To_Color();
+		
 	}
 ReleaseFrame:
 	m_pNuiSensor->NuiImageStreamReleaseFrame(h, &pImageFrame_Depth);
 	return 0;
 }
 
+int Mapping_Depth_To_Color(void)
+{
+	INuiCoordinateMapper*			pMapper;
+	HRESULT hr = m_pNuiSensor->NuiGetCoordinateMapper(&pMapper);
+	if (S_OK != hr)
+	{
+		cout << "Can not Get CoordinateMapper" << endl;
+		return -1;
+	}
+
+	hr = pMapper->MapDepthFrameToColorFrame(depthResolution, 640 * 480, Pixel_Depth, NUI_IMAGE_TYPE_COLOR, colorResolution, 640 * 480, Depth_Mapping_Color_2D);
+	if (S_OK != hr)
+	{
+		cout << "Can not Mapping" << endl;
+		//return -1;
+	}
+	//cout << "匹配前240行320列处的深度：" << Pixel_Depth[239 * 640 + 319].depth << endl;
+	cout << Depth_Mapping_Color_2D[0].x << "    " << Depth_Mapping_Color_2D[0].y << endl;
+	Getting_Pixel_AfterMapping();
+	return 0;
+}
+
+
+void Getting_Pixel_AfterMapping()
+{
+	for (int j = 0; j < size(Pixel_Depth); j++)
+	{
+		Depth_Mapping_Color_3D[j].X = Depth_Mapping_Color_2D[j].x;
+		Depth_Mapping_Color_3D[j].Y = Depth_Mapping_Color_2D[j].y;
+		Depth_Mapping_Color_3D[j].depth = Pixel_Depth[j].depth;
+	}
+	Mat jshow;
+	jshow.create(480, 640, CV_8UC4);
+	jshow = 0;
+
+	for (int i = 0; i < 480; i++)
+	{
+		for (int j = 0; j < 640; j++)
+		{
+			//在内存中偏移量
+			long index = i * 640 + j;
+			//从保存了映射坐标的数组中获取点
+			Depth_Mapping_Color_Pixel depthPointAtIndex = Depth_Mapping_Color_3D[index];
+
+			uchar *prt_rgb = Copy_Color.ptr(depthPointAtIndex.X);
+			uchar *prt_show = jshow.ptr(i);
+
+			//边界判断
+			if (depthPointAtIndex.X >= 0 && depthPointAtIndex.X < 480)
+			{
+				//深度判断，在MIN_DISTANCE与MAX_DISTANCE之间的当成前景，显示出来
+				//这个使用也很重要，当使用真正的深度像素点再在深度图像中获取深度值来判断的时候，会出错
+
+				if (depthPointAtIndex.Y * 3 >=0 && depthPointAtIndex.Y * 3 + 2 < 640)
+				{
+					prt_show[3 * j] = prt_rgb[depthPointAtIndex.Y * 4];
+					prt_show[3 * j + 1] = prt_rgb[depthPointAtIndex.Y * 4 + 1];
+					prt_show[3 * j + 2] = prt_rgb[depthPointAtIndex.Y * 4 + 2];
+					prt_show[3 * j + 3] = 0;
+				}
+			}
+		}
+	}
+	imshow("show", jshow);
+}
+	//cout << "匹配后240行320列处的深度："<< Depth_Mapping_Color_3D[239 * 640 + 319].depth << endl;

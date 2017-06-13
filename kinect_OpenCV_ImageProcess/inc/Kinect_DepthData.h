@@ -5,12 +5,13 @@
 //------------------------------------------------------------------------------
 
 #pragma once
-
-struct Data_Pixel
+#ifndef _Depth_Mapping_Color_Pixel
+#define _Depth_Mapping_Color_Pixel
+typedef struct _Depth_Mapping_Color_Pixel
 {
-	USHORT Depth;			// 保留深度图像值
-	BYTE intensity;			// 保存RGB值
-	//BYTE Red_intensity;
-	//BYTE Green_intensity;
-	//BYTE Blue_intensity;
-};
+	LONG X;
+	LONG Y;
+	USHORT depth;
+} Depth_Mapping_Color_Pixel;
+
+#endif _Depth_Mapping_Color_Pixel

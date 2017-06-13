@@ -1,21 +1,21 @@
-﻿生成启动时间为 2017/6/2 17:10:08。
-     1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\DepthBasics-D2D.vcxproj”在节点 2 上(Build 个目标)。
+﻿生成启动时间为 2017/6/2 16:56:15。
+     1>项目“C:\Users\njust\Desktop\DepthBasics-D2D\DepthBasics-D2D.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt DepthBasics.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt ImageRenderer.cpp DepthBasics.cpp
+         ImageRenderer.cpp
          DepthBasics.cpp
-     1>DepthBasics.cpp(374): warning C4101: “Data_In_Pixel”: 未引用的局部变量
+       ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"Release\DepthBasics.res" DepthBasics.rc 
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Release\DepthBasics-D2D.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib Kinect10.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Release\DepthBasics-D2D.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Release\DepthBasics-D2D.lib" /MACHINE:X86 /SAFESEH Release\DepthBasics.res
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\njust\Desktop\DepthBasics-D2D\Release\DepthBasics-D2D.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib Kinect10.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\njust\Desktop\DepthBasics-D2D\Release\DepthBasics-D2D.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\njust\Desktop\DepthBasics-D2D\Release\DepthBasics-D2D.lib" /MACHINE:X86 /SAFESEH Release\DepthBasics.res
          Release\ImageRenderer.obj
          Release\DepthBasics.obj
          正在生成代码
-         3 of 326 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
-           0 functions were new in current compilation
-           1 functions had inline decision re-evaluated but remain unchanged
+         All 31 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
          已完成代码的生成
-         DepthBasics-D2D.vcxproj -> E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\Release\DepthBasics-D2D.exe
-     1>已完成生成项目“E:\RESEARCH\mobile welding robot\control\Kinect\DepthBasics-D2D\DepthBasics-D2D.vcxproj”(Build 个目标)的操作。
+         DepthBasics-D2D.vcxproj -> C:\Users\njust\Desktop\DepthBasics-D2D\Release\DepthBasics-D2D.exe
+     1>已完成生成项目“C:\Users\njust\Desktop\DepthBasics-D2D\DepthBasics-D2D.vcxproj”(Build 个目标)的操作。
 
 已成功生成。
 
-已用时间 00:00:03.22
+已用时间 00:00:02.43

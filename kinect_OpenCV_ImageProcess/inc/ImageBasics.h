@@ -9,12 +9,8 @@
 #include "resource.h"
 #include "NuiApi.h"
 #include <string>
+#include "kinect_depthdata.h"			// 深度图像基础数据
 
-//struct Data_Pixel
-//{
-//	USHORT Depth;
-//	BYTE intensity;
-//};
 using namespace std;
 
 //---图像分辨率------------------------------------------
@@ -44,8 +40,12 @@ HANDLE					m_pDepthStreamHandle(INVALID_HANDLE_VALUE);
 HANDLE					m_hNextVideoFrameEvent(INVALID_HANDLE_VALUE);
 HANDLE					m_pVideoStreamHandle(INVALID_HANDLE_VALUE);
 
-//----深度图画布-----------------------------------------------------------------
-BYTE*	                m_depthRGBX;
+//----深度图像信息-----------------------------------------------------------------
+BYTE*						m_depthRGBX;
+NUI_DEPTH_IMAGE_PIXEL		Pixel_Depth[cDepthWidth*cDepthHeight];								// 存储深度图像数据
+NUI_COLOR_IMAGE_POINT		Depth_Mapping_Color_2D[cDepthWidth*cDepthHeight];
+Depth_Mapping_Color_Pixel	Depth_Mapping_Color_3D[cDepthWidth*cDepthHeight];						// 存放了深度图匹配到彩色图后的坐标位置
+
 
 //---ColorImage保存名称数组-------------------------------
 string ImageName[10] = { "Kinect1.jpg","Kinect2.jpg", "Kinect3.jpg", "Kinect4.jpg", "Kinect5.jpg", "Kinect6.jpg", "Kinect7.jpg", "Kinect8.jpg", "Kinect9.jpg", "Kinect10.jpg" };
