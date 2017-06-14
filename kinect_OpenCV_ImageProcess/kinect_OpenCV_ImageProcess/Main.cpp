@@ -1,6 +1,6 @@
 //----------------------------【程序的功能】-----------------------------------------------------
 	// 1、用opencv和kinect sdk共同完成kinect彩色和深度图数据读取和处理工作；
-	// 2、完成深度图像与彩色图像的对齐，进行特征提识别目标物；
+	// 2、将彩色图像和深度图像都转化成摄像头坐标下的3D位置信息，可以不用做内参标定
 	// 3、根据目标物的方位生成机器人路径规划；
 	// 4、最终生成机器人的路径规划多项式系数，并完成与TwinCAT的数据交互
 //---------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ using namespace cv;
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
-int Mapping_Depth_To_Color(void);				// 深度图映射到彩色图
+int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
 void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
 
 int i = 0;										// 保存彩色图的序号
@@ -260,7 +260,7 @@ int Depth_Process(HANDLE h)
 			imwrite("Depth.jpg", depthTmp, compression_params);
 		}
 
-		Mapping_Depth_To_Color();
+		Mapping_Color_To_Skeletion();
 		
 	}
 ReleaseFrame:
@@ -268,7 +268,8 @@ ReleaseFrame:
 	return 0;
 }
 
-int Mapping_Depth_To_Color(void)
+//-------------------------------将彩色图中对应点转化为摄像头坐标系中的三维坐标-------------------------------------------- 
+int Mapping_Color_To_Skeletion(void)
 {
 	INuiCoordinateMapper*			pMapper;
 	HRESULT hr = m_pNuiSensor->NuiGetCoordinateMapper(&pMapper);
@@ -278,15 +279,16 @@ int Mapping_Depth_To_Color(void)
 		return -1;
 	}
 
-	hr = pMapper->MapDepthFrameToColorFrame(depthResolution, 640 * 480, Pixel_Depth, NUI_IMAGE_TYPE_COLOR, colorResolution, 640 * 480, Depth_Mapping_Color_2D);
+	hr = pMapper->MapColorFrameToSkeletonFrame(NUI_IMAGE_TYPE_COLOR,colorResolution,depthResolution, 640 * 480, Pixel_Depth, 640 * 480, Color_Mapping_Skeletion_3D);
 	if (S_OK != hr)
 	{
 		cout << "Can not Mapping" << endl;
 		//return -1;
 	}
 	//cout << "匹配前240行320列处的深度：" << Pixel_Depth[239 * 640 + 319].depth << endl;
-	cout << Depth_Mapping_Color_2D[0].x << "    " << Depth_Mapping_Color_2D[0].y << endl;
-	Getting_Pixel_AfterMapping();
+	cout << size(Color_Mapping_Skeletion_3D) << endl;
+	cout << "彩色图中心点在摄像头坐标系中的位置:  [ "<< 1000*Color_Mapping_Skeletion_3D[100*640+319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].z << "mm ]" << endl;
+	//Getting_Pixel_AfterMapping();
 	return 0;
 }
 

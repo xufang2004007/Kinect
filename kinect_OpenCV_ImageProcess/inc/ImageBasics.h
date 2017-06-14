@@ -42,9 +42,10 @@ HANDLE					m_pVideoStreamHandle(INVALID_HANDLE_VALUE);
 
 //----深度图像信息-----------------------------------------------------------------
 BYTE*						m_depthRGBX;
-NUI_DEPTH_IMAGE_PIXEL		Pixel_Depth[cDepthWidth*cDepthHeight];								// 存储深度图像数据
-NUI_COLOR_IMAGE_POINT		Depth_Mapping_Color_2D[cDepthWidth*cDepthHeight];
-Depth_Mapping_Color_Pixel	Depth_Mapping_Color_3D[cDepthWidth*cDepthHeight];						// 存放了深度图匹配到彩色图后的坐标位置
+NUI_DEPTH_IMAGE_PIXEL		Pixel_Depth[cDepthWidth*cDepthHeight] = { 0,0 };								// 存储深度图像数据
+NUI_COLOR_IMAGE_POINT		Depth_Mapping_Color_2D[cDepthWidth*cDepthHeight] = { 0,0,0 };					// 存放了深度图匹配到彩色图后的二维坐标位置
+Depth_Mapping_Color_Pixel	Depth_Mapping_Color_3D[cDepthWidth*cDepthHeight] = { 0,0,0 };					// 存放了深度图匹配到彩色图后的三维坐标位置
+Vector4						Color_Mapping_Skeletion_3D[cDepthWidth*cDepthHeight] = { 0,0,0 };					// 存放了从彩色图匹配到摄像头坐标系下的三维坐标
 
 
 //---ColorImage保存名称数组-------------------------------
