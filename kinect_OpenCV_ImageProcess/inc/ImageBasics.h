@@ -50,3 +50,4 @@ Vector4						Color_Mapping_Skeletion_3D[cDepthWidth*cDepthHeight] = { 0,0,0 };		
 
 //---ColorImage保存名称数组-------------------------------
 string ImageName[10] = { "Kinect1.jpg","Kinect2.jpg", "Kinect3.jpg", "Kinect4.jpg", "Kinect5.jpg", "Kinect6.jpg", "Kinect7.jpg", "Kinect8.jpg", "Kinect9.jpg", "Kinect10.jpg" };
+string PCDFile[10] = { "PCD1.pcd","PCD2.pcd","PCD3.pcd" ,"PCD4.pcd" ,"PCD5.pcd" ,"PCD6.pcd" ,"PCD7.pcd" ,"PCD8.pcd" ,"PCD9.pcd" ,"PCD10.pcd"};

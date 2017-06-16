@@ -21,9 +21,14 @@
 #include <opencv/highgui.h>
 #include <opencv2/opencv.hpp>			// 包含所有的opencv2头文件
 
+//----------------------------【PCL头文件】-------------------------------------
+#include <pcl/io/pcd_io.h>  
+#include <pcl/point_types.h>
+
 //----------------------------【命名空间定义】-------------------------------------
 using namespace std;
 using namespace cv;
+using namespace pcl;
 
 //----------------------------【函数与全局变量声明】-----------------------------------------
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
@@ -33,6 +38,7 @@ int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
 void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
 
 int i = 0;										// 保存彩色图的序号
+int PCD_Number = 0;								// 保存PCD点云的序号
 Mat Copy_Color;
 
 //-------------------------------主程序--------------------------------------------
@@ -48,6 +54,10 @@ int main(int argc, char * argv[])
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
+			if (PCD_Number >1) 
+			{
+				break;
+			}
 		}
 	}
 	NuiShutdown();
@@ -280,14 +290,36 @@ int Mapping_Color_To_Skeletion(void)
 	}
 
 	hr = pMapper->MapColorFrameToSkeletonFrame(NUI_IMAGE_TYPE_COLOR,colorResolution,depthResolution, 640 * 480, Pixel_Depth, 640 * 480, Color_Mapping_Skeletion_3D);
-	if (S_OK != hr)
+	
+	if (S_OK == hr)
+	{
+		cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
+		
+		PointCloud<pcl::PointXYZ> cloud;
+		cloud.width = 640*480;
+		cloud.height = 1;
+		cloud.is_dense = FALSE;
+		cloud.points.resize(cloud.width * cloud.height);
+
+		for (int  k = 0; k < 640*480; k++)
+		{
+			cloud.points[k].x = Color_Mapping_Skeletion_3D[k].x;
+			cloud.points[k].y = Color_Mapping_Skeletion_3D[k].y;
+			cloud.points[k].z = Color_Mapping_Skeletion_3D[k].z;
+		}
+		io::savePCDFileASCII(PCDFile[PCD_Number], cloud);
+		cout << "Get [ " << PCD_Number + 1 << " ] PCD File" << endl;
+		PCD_Number++;
+	}
+	else
 	{
 		cout << "Can not Mapping" << endl;
-		//return -1;
+		return -1;
 	}
+	
 	//cout << "匹配前240行320列处的深度：" << Pixel_Depth[239 * 640 + 319].depth << endl;
-	cout << size(Color_Mapping_Skeletion_3D) << endl;
-	cout << "彩色图中心点在摄像头坐标系中的位置:  [ "<< 1000*Color_Mapping_Skeletion_3D[100*640+319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].z << "mm ]" << endl;
+	//cout << size(Color_Mapping_Skeletion_3D) << endl;
+	//cout << "彩色图中心点在摄像头坐标系中的位置:  [ "<< 1000*Color_Mapping_Skeletion_3D[100*640+319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].z << "mm ]" << endl;
 	//Getting_Pixel_AfterMapping();
 	return 0;
 }
