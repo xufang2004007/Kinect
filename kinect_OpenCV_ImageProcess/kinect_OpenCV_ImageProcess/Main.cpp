@@ -294,22 +294,27 @@ int Mapping_Color_To_Skeletion(void)
 	if (S_OK == hr)
 	{
 		cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
-		
-		PointCloud<pcl::PointXYZ> cloud;
-		cloud.width = 640*480;
-		cloud.height = 1;
-		cloud.is_dense = FALSE;
-		cloud.points.resize(cloud.width * cloud.height);
 
-		for (int  k = 0; k < 640*480; k++)
+		int c = waitKey(10);										// 等待键盘输入
+		if (c == 'p' || c == 'P') 
 		{
-			cloud.points[k].x = Color_Mapping_Skeletion_3D[k].x;
-			cloud.points[k].y = Color_Mapping_Skeletion_3D[k].y;
-			cloud.points[k].z = Color_Mapping_Skeletion_3D[k].z;
+			PointCloud<pcl::PointXYZ> cloud;
+			cloud.width = 640 * 480;
+			cloud.height = 1;
+			cloud.is_dense = FALSE;
+			cloud.points.resize(cloud.width * cloud.height);
+
+			for (int k = 0; k < 640 * 480; k++)
+			{
+				cloud.points[k].x = Color_Mapping_Skeletion_3D[k].x;
+				cloud.points[k].y = Color_Mapping_Skeletion_3D[k].y;
+				cloud.points[k].z = Color_Mapping_Skeletion_3D[k].z;
+			}
+			io::savePCDFileASCII(PCDFile[PCD_Number], cloud);
+			cout << "Get [ " << PCD_Number + 1 << " ] PCD File" << endl;
+			PCD_Number++;
 		}
-		io::savePCDFileASCII(PCDFile[PCD_Number], cloud);
-		cout << "Get [ " << PCD_Number + 1 << " ] PCD File" << endl;
-		PCD_Number++;
+
 	}
 	else
 	{
