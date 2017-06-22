@@ -24,6 +24,13 @@
 //----------------------------【PCL头文件】-------------------------------------
 #include <pcl/io/pcd_io.h>  
 #include <pcl/point_types.h>
+#include <pcl/visualization/cloud_viewer.h> 
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+
+// 解决vtk编译出现的错误
+#include <vtkAutoInit.h>  
+VTK_MODULE_INIT(vtkRenderingOpenGL);
 
 //----------------------------【命名空间定义】-------------------------------------
 using namespace std;
@@ -35,18 +42,29 @@ BOOL CreateFirstConnected();					// Kinect连接并打开数据流
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
 int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
+void PCLView();									// 输出PCL数据流
 void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
 
 int i = 0;										// 保存彩色图的序号
 int PCD_Number = 0;								// 保存PCD点云的序号
 Mat Copy_Color;
 
+PointCloud<pcl::PointXYZ>::Ptr scr_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+VoxelGrid<pcl::PointXYZ>sor;  //创建滤波对象
+
+boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D_Viwer"));
+
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[]) 
 {
+	PCLView();
+
 	int connect_hr = CreateFirstConnected();							// 进行连接检测程序
+	int update = 0;
 
 	m_depthRGBX = new BYTE[cDepthWidth*cDepthHeight*cBytesPerPixel];
+
 
 	if (connect_hr) 
 	{
@@ -54,6 +72,13 @@ int main(int argc, char * argv[])
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
+			update++;
+			if (!viewer->wasStopped() && update == 5)
+			{
+				viewer->updatePointCloud(scr_cloud, "cloud");
+				update = 0;
+			}
+
 			if (PCD_Number >1) 
 			{
 				break;
@@ -292,25 +317,22 @@ int Mapping_Color_To_Skeletion(void)
 	hr = pMapper->MapColorFrameToSkeletonFrame(NUI_IMAGE_TYPE_COLOR,colorResolution,depthResolution, 640 * 480, Pixel_Depth, 640 * 480, Color_Mapping_Skeletion_3D);
 	
 	if (S_OK == hr)
-	{
+	{	
 		cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
+
+		for (int k = 0; k < 640 * 480; k++)
+		{
+			scr_cloud->points[k].x = Color_Mapping_Skeletion_3D[k].x;
+			scr_cloud->points[k].y = Color_Mapping_Skeletion_3D[k].y;
+			scr_cloud->points[k].z = Color_Mapping_Skeletion_3D[k].z;
+		}
 
 		int c = waitKey(10);										// 等待键盘输入
 		if (c == 'p' || c == 'P') 
 		{
-			PointCloud<pcl::PointXYZ> cloud;
-			cloud.width = 640 * 480;
-			cloud.height = 1;
-			cloud.is_dense = FALSE;
-			cloud.points.resize(cloud.width * cloud.height);
+			pcl::PCDWriter writer;
+			writer.write<pcl::PointXYZ>(PCDFile[PCD_Number], *cloud_filtered, false);
 
-			for (int k = 0; k < 640 * 480; k++)
-			{
-				cloud.points[k].x = Color_Mapping_Skeletion_3D[k].x;
-				cloud.points[k].y = Color_Mapping_Skeletion_3D[k].y;
-				cloud.points[k].z = Color_Mapping_Skeletion_3D[k].z;
-			}
-			io::savePCDFileASCII(PCDFile[PCD_Number], cloud);
 			cout << "Get [ " << PCD_Number + 1 << " ] PCD File" << endl;
 			PCD_Number++;
 		}
@@ -321,55 +343,79 @@ int Mapping_Color_To_Skeletion(void)
 		cout << "Can not Mapping" << endl;
 		return -1;
 	}
-	
+
 	//cout << "匹配前240行320列处的深度：" << Pixel_Depth[239 * 640 + 319].depth << endl;
 	//cout << size(Color_Mapping_Skeletion_3D) << endl;
 	//cout << "彩色图中心点在摄像头坐标系中的位置:  [ "<< 1000*Color_Mapping_Skeletion_3D[100*640+319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].z << "mm ]" << endl;
 	//Getting_Pixel_AfterMapping();
 	return 0;
+
+
 }
 
-
-void Getting_Pixel_AfterMapping()
+void PCLView()
 {
-	for (int j = 0; j < size(Pixel_Depth); j++)
-	{
-		Depth_Mapping_Color_3D[j].X = Depth_Mapping_Color_2D[j].x;
-		Depth_Mapping_Color_3D[j].Y = Depth_Mapping_Color_2D[j].y;
-		Depth_Mapping_Color_3D[j].depth = Pixel_Depth[j].depth;
-	}
-	Mat jshow;
-	jshow.create(480, 640, CV_8UC4);
-	jshow = 0;
+	scr_cloud->width = 640 * 480;
+	scr_cloud->height = 1;
+	scr_cloud->is_dense = FALSE;
+	scr_cloud->points.resize(scr_cloud->width * scr_cloud->height);
 
-	for (int i = 0; i < 480; i++)
-	{
-		for (int j = 0; j < 640; j++)
-		{
-			//在内存中偏移量
-			long index = i * 640 + j;
-			//从保存了映射坐标的数组中获取点
-			Depth_Mapping_Color_Pixel depthPointAtIndex = Depth_Mapping_Color_3D[index];
+	
+	viewer->addCoordinateSystem(1.0);
+	viewer->addPointCloud<pcl::PointXYZ>(scr_cloud, "cloud");
 
-			uchar *prt_rgb = Copy_Color.ptr(depthPointAtIndex.X);
-			uchar *prt_show = jshow.ptr(i);
+	//sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
+	//sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
+	//sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
+	
 
-			//边界判断
-			if (depthPointAtIndex.X >= 0 && depthPointAtIndex.X < 480)
-			{
-				//深度判断，在MIN_DISTANCE与MAX_DISTANCE之间的当成前景，显示出来
-				//这个使用也很重要，当使用真正的深度像素点再在深度图像中获取深度值来判断的时候，会出错
-
-				if (depthPointAtIndex.Y * 3 >=0 && depthPointAtIndex.Y * 3 + 2 < 640)
-				{
-					prt_show[3 * j] = prt_rgb[depthPointAtIndex.Y * 4];
-					prt_show[3 * j + 1] = prt_rgb[depthPointAtIndex.Y * 4 + 1];
-					prt_show[3 * j + 2] = prt_rgb[depthPointAtIndex.Y * 4 + 2];
-					prt_show[3 * j + 3] = 0;
-				}
-			}
-		}
-	}
-	imshow("show", jshow);
+	//while (!viewer->wasStopped())
+	//{
+	//	viewer->spinOnce(100);
+	//	boost::this_thread::sleep(boost::posix_time::seconds(1));
+	//}
 }
+
+//void Getting_Pixel_AfterMapping()
+//{
+//	for (int j = 0; j < size(Pixel_Depth); j++)
+//	{
+//		Depth_Mapping_Color_3D[j].X = Depth_Mapping_Color_2D[j].x;
+//		Depth_Mapping_Color_3D[j].Y = Depth_Mapping_Color_2D[j].y;
+//		Depth_Mapping_Color_3D[j].depth = Pixel_Depth[j].depth;
+//	}
+//	Mat jshow;
+//	jshow.create(480, 640, CV_8UC4);
+//	jshow = 0;
+//
+//	for (int i = 0; i < 480; i++)
+//	{
+//		for (int j = 0; j < 640; j++)
+//		{
+//			//在内存中偏移量
+//			long index = i * 640 + j;
+//			//从保存了映射坐标的数组中获取点
+//			Depth_Mapping_Color_Pixel depthPointAtIndex = Depth_Mapping_Color_3D[index];
+//
+//			uchar *prt_rgb = Copy_Color.ptr(depthPointAtIndex.X);
+//			uchar *prt_show = jshow.ptr(i);
+//
+//			//边界判断
+//			if (depthPointAtIndex.X >= 0 && depthPointAtIndex.X < 480)
+//			{
+//				//深度判断，在MIN_DISTANCE与MAX_DISTANCE之间的当成前景，显示出来
+//				//这个使用也很重要，当使用真正的深度像素点再在深度图像中获取深度值来判断的时候，会出错
+//
+//				if (depthPointAtIndex.Y * 3 >=0 && depthPointAtIndex.Y * 3 + 2 < 640)
+//				{
+//					prt_show[3 * j] = prt_rgb[depthPointAtIndex.Y * 4];
+//					prt_show[3 * j + 1] = prt_rgb[depthPointAtIndex.Y * 4 + 1];
+//					prt_show[3 * j + 2] = prt_rgb[depthPointAtIndex.Y * 4 + 2];
+//					prt_show[3 * j + 3] = 0;
+//				}
+//			}
+//		}
+//	}
+//	imshow("show", jshow);
+//}
 	//cout << "匹配后240行320列处的深度："<< Depth_Mapping_Color_3D[239 * 640 + 319].depth << endl;
