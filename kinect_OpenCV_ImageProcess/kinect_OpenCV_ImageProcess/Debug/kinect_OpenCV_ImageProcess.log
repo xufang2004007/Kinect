@@ -1,4 +1,4 @@
-﻿生成启动时间为 2017/6/22 21:18:26。
+﻿生成启动时间为 2017/6/24 20:41:27。
      1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess\kinect_OpenCV_ImageProcess.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I"E:\RESEARCH\mobile welding robot\control\Kinect\kinect_OpenCV_ImageProcess\inc" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _SCL_SECURE_NO_WARNINGS /D _CRT_SECURE_NO_WARNINGS /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"Debug\kinect_OpenCV_ImageProcess.pch" /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Main.cpp
@@ -14,4 +14,4 @@
 
 已成功生成。
 
-已用时间 00:00:19.08
+已用时间 00:00:15.82

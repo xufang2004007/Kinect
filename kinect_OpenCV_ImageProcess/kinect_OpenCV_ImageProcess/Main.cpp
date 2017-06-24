@@ -368,9 +368,9 @@ void PCLView()
 	viewer->addCoordinateSystem(1.0);
 	//viewer->addPointCloud<pcl::PointXYZ>(scr_cloud, "cloud");
 
-	sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
-	sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
-	sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
+	//sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
+	//sor.setLeafSize(0.3f, 0.3f, 0.3f);           //设置滤波时创建的体素大小为1cm立方体
+	//sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
 
 	viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
 	
