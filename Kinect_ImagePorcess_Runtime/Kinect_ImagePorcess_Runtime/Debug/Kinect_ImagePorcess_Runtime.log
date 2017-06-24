@@ -1,4 +1,4 @@
-﻿生成启动时间为 2017/6/22 21:22:28。
+﻿生成启动时间为 2017/6/24 21:56:04。
      1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_ImagePorcess_Runtime\Kinect_ImagePorcess_Runtime\Kinect_ImagePorcess_Runtime.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_ImagePorcess_Runtime\inc" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"Debug\Kinect_ImagePorcess_Runtime.pch" /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Kinect_ImagePorcess_Runtime.cpp
@@ -14,4 +14,4 @@
 
 已成功生成。
 
-已用时间 00:00:22.98
+已用时间 00:00:19.92

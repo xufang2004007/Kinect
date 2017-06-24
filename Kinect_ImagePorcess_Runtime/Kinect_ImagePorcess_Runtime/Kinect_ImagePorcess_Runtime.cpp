@@ -24,6 +24,7 @@
 //----------------------------【PCL头文件】-------------------------------------
 #include <pcl/io/pcd_io.h>  
 #include <pcl/point_types.h>
+#include <pcl/features/normal_3d.h>
 #include <pcl/visualization/cloud_viewer.h> 
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/statistical_outlier_removal.h>
@@ -40,31 +41,34 @@ using namespace pcl;
 
 //----------------------------【函数与全局变量声明】-----------------------------------------
 BOOL CreateFirstConnected();					// Kinect连接并打开数据流
-int Depth_Process(HANDLE h);					// 深度图处理程序
 int Color_Process(HANDLE h);					// 彩色图处理程序
+int Depth_Process(HANDLE h);					// 深度图处理程序
 int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
-void PCLView();									// 输出PCL数据流
+void Normals_Process();							// 对点云的法线进行处理
 
 int i = 0;										// 保存彩色图的序号
 int PCD_Number = 0;								// 保存PCD点云的序号
 Mat Copy_Color;
 
-PointCloud<pcl::PointXYZ>::Ptr scr_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-VoxelGrid<pcl::PointXYZ>sor;  //创建滤波对象
+PointCloud<pcl::PointXYZ>::Ptr					scr_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+PointCloud<pcl::PointXYZ>::Ptr					cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZ>::Ptr				cloud_outliner(new pcl::PointCloud<pcl::PointXYZ>);
+PointCloud<pcl::Normal>::Ptr					normals(new pcl::PointCloud<pcl::Normal>);
+VoxelGrid<pcl::PointXYZ>						Sor_VoxelGrid;			//	创建降低点数的滤波对象
+pcl::StatisticalOutlierRemoval<pcl::PointXYZ>	Sor_OutlinerRemoval;	// 创建去除离群点的滤波对象
 
-boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D_Viwer"));
 
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[])
 {
-	PCLView();
-
+	
 	int connect_hr = CreateFirstConnected();							// 进行连接检测程序
 	int update = 0;
-
-	//m_depthRGBX = new BYTE[cDepthWidth*cDepthHeight*cBytesPerPixel];
-
+	
+	scr_cloud->width = 640 * 480;
+	scr_cloud->height = 1;
+	scr_cloud->is_dense = FALSE;
+	scr_cloud->points.resize(scr_cloud->width * scr_cloud->height);
 
 	if (connect_hr)
 	{
@@ -72,16 +76,16 @@ int main(int argc, char * argv[])
 		{
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
-			update++;
-			if (!viewer->wasStopped() && update == 5)
-			{
-				//sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
-				//sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
-				//sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
+			//update++;
+			//if (!viewer->wasStopped())
+			//{
+			//	sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
+			//	sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
+			//	sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
 
-				viewer->updatePointCloud(scr_cloud, "cloud");
-				update = 0;
-			}
+			//	viewer->updatePointCloud(cloud_filtered, "cloud");
+			//	Sleep(10);
+			//}
 
 			if (PCD_Number >1)
 			{
@@ -242,26 +246,7 @@ int Depth_Process(HANDLE h)
 			Pixel_Depth[Index_Pixel].depth = pBufferRun->depth;
 			Pixel_Depth[Index_Pixel].playerIndex = pBufferRun->playerIndex;
 
-			//// 得到每个像素点的深度值
-			//USHORT depth = pBufferRun->depth;
-
-			//// 将每个像素点的深度值转化为0-255的RGB值
-			//BYTE intensity = static_cast<BYTE>(depth >= minDepth && depth <= maxDepth ? depth % 256 : 0);
-
-			//// Write out blue byte
-			//*(rgbrun++) = intensity;
-
-			//// Write out green byte
-			//*(rgbrun++) = intensity;
-
-			//// Write out red byte
-			//*(rgbrun++) = intensity;
-
-			//++rgbrun;
-
-			//// Increment our index into the Kinect's depth buffer
-			//++pBufferRun;
-			////++pixel;
+			++pBufferRun;
 		}
 
 		Mapping_Color_To_Skeletion();
@@ -296,7 +281,7 @@ int Mapping_Color_To_Skeletion(void)
 			scr_cloud->points[k].z = Color_Mapping_Skeletion_3D[k].z;
 		}
 
-
+		Normals_Process();			// 进行点云的法线处理
 	}
 	else
 	{
@@ -309,21 +294,58 @@ int Mapping_Color_To_Skeletion(void)
 
 }
 
-void PCLView()
+void Normals_Process()
 {
-	scr_cloud->width = 640 * 480;
-	scr_cloud->height = 1;
-	scr_cloud->is_dense = FALSE;
-	scr_cloud->points.resize(scr_cloud->width * scr_cloud->height);
+	double Time = (double)cvGetTickCount();
 
+	// --- 降低点数 ---
+	Sor_VoxelGrid.setInputCloud(scr_cloud);						//设置需要过滤的点云给滤波对象
+	Sor_VoxelGrid.setLeafSize(0.05f, 0.05f, 0.05f);				//设置滤波时创建的体素大小为5cm立方体
+	Sor_VoxelGrid.filter(*cloud_filtered);						//执行滤波处理，存储输出cloud_filtered
 
+	cout << "降低点数后的点云中点的数目：" << cloud_filtered->size() << endl;	
+
+	// -- 去除离群点 -- 
+	Sor_OutlinerRemoval.setInputCloud(cloud_filtered);
+	Sor_OutlinerRemoval.setMeanK(500);
+	Sor_OutlinerRemoval.setStddevMulThresh(0.5);
+	Sor_OutlinerRemoval.filter(*cloud_outliner);
+
+	cout << "去除离群点后点云中点的数目：" << cloud_outliner->size() << endl;
+
+	// --- 再次降低点数 ---
+	Sor_VoxelGrid.setInputCloud(cloud_outliner);				//设置需要过滤的点云给滤波对象
+	Sor_VoxelGrid.setLeafSize(0.1f, 0.1f, 0.1f);				//设置滤波时创建的体素大小为5cm立方体
+	Sor_VoxelGrid.filter(*cloud_filtered);						//执行滤波处理，存储输出cloud_filtered
+
+	cout << "再次降低点数后的点云中点的数目：" << cloud_filtered->size() << endl;
+	
+	//创建法线估计的对象
+	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
+	normalEstimation.setInputCloud(cloud_filtered);
+	//对于每一个点都用半径为3cm的近邻搜索方式
+	normalEstimation.setRadiusSearch(3);
+	//Kd_tree是一种数据结构便于管理点云以及搜索点云，法线估计对象会使用这种结构来找到最近邻点
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
+	normalEstimation.setSearchMethod(kdtree);
+
+	//计算法线
+	normalEstimation.compute(*normals);
+	cout << "[" << normals->points[10].normal_x << "," << normals->points[10].normal_y << "," << normals->points[10].normal_z << "," << "]" << endl;
+
+	Time = (double)cvGetTickCount() - Time;
+	cout << "法线估计时间为：" << Time / (cvGetTickFrequency() * 1000000) << endl;//秒
+
+	//可视化
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Normals"));
 	viewer->addCoordinateSystem(1.0);
-	//viewer->addPointCloud<pcl::PointXYZ>(scr_cloud, "cloud");
+	viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
+	viewer->addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud_filtered, normals, 40, 1, "normals");
 
-	//sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
-	//sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
-	//sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
-
-	viewer->addPointCloud<pcl::PointXYZ>(scr_cloud, "cloud");
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(1000000));
+	}
 
 }
