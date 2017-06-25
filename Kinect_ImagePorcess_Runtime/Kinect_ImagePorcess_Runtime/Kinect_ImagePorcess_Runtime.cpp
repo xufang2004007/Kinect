@@ -28,6 +28,10 @@
 #include <pcl/visualization/cloud_viewer.h> 
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/statistical_outlier_removal.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
 
 // 解决vtk编译出现的错误
 #include <vtkAutoInit.h>  
@@ -45,6 +49,7 @@ int Color_Process(HANDLE h);					// 彩色图处理程序
 int Depth_Process(HANDLE h);					// 深度图处理程序
 int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
 void Normals_Process();							// 对点云的法线进行处理
+void Plane_segmentation();						// 对点云进行平面分割
 
 int i = 0;										// 保存彩色图的序号
 int PCD_Number = 0;								// 保存PCD点云的序号
@@ -65,7 +70,7 @@ int main(int argc, char * argv[])
 	int connect_hr = CreateFirstConnected();							// 进行连接检测程序
 	int update = 0;
 	
-	scr_cloud->width = 640 * 480;
+	scr_cloud->width = 640*480;
 	scr_cloud->height = 1;
 	scr_cloud->is_dense = FALSE;
 	scr_cloud->points.resize(scr_cloud->width * scr_cloud->height);
@@ -282,6 +287,7 @@ int Mapping_Color_To_Skeletion(void)
 		}
 
 		Normals_Process();			// 进行点云的法线处理
+		Plane_segmentation();		// 割离平面，平面分割
 	}
 	else
 	{
@@ -294,6 +300,7 @@ int Mapping_Color_To_Skeletion(void)
 
 }
 
+//-------------------------------点云采样发现估计-------------------------------------------- 
 void Normals_Process()
 {
 	double Time = (double)cvGetTickCount();
@@ -331,21 +338,54 @@ void Normals_Process()
 
 	//计算法线
 	normalEstimation.compute(*normals);
-	cout << "[" << normals->points[10].normal_x << "," << normals->points[10].normal_y << "," << normals->points[10].normal_z << "," << "]" << endl;
+	cout << "第" << normals->points.size() / 2 << "个点处的法线系数为："<<"[" << normals->points[normals->points.size() / 2].normal_x << "," << normals->points[normals->points.size() / 2].normal_y << "," << normals->points[normals->points.size() / 2].normal_z << "]" << endl;
+	cout << "第10个点处的法线系数为：" << "[" << normals->points[10].normal_x << "," << normals->points[10].normal_y << "," << normals->points[10].normal_z << "]" << endl;
+
 
 	Time = (double)cvGetTickCount() - Time;
 	cout << "法线估计时间为：" << Time / (cvGetTickFrequency() * 1000000) << endl;//秒
 
-	//可视化
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Normals"));
-	viewer->addCoordinateSystem(1.0);
-	viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
-	viewer->addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud_filtered, normals, 40, 1, "normals");
+	////可视化
+	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Normals"));
+	//viewer->addCoordinateSystem(1.0);
+	//viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
+	//viewer->addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud_filtered, normals, 40, 1, "normals");
 
-	while (!viewer->wasStopped())
+	//while (!viewer->wasStopped())
+	//{
+	//	viewer->spinOnce(100);
+	//	boost::this_thread::sleep(boost::posix_time::microseconds(1000000));
+	//}
+
+}
+
+//-------------------------------点云平面分割-------------------------------------------- 
+void Plane_segmentation()
+{
+	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+	// Create the segmentation object
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
+	// Optional
+	seg.setOptimizeCoefficients(true);
+	// Mandatory
+	seg.setModelType(pcl::SACMODEL_PLANE);
+	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setDistanceThreshold(0.03);
+
+	seg.setInputCloud(scr_cloud);
+	seg.segment(*inliers, *coefficients);
+
+	if (inliers->indices.size() == 0)
 	{
-		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(1000000));
+		PCL_ERROR("Could not estimate a planar model for the given dataset.");
+		//return (-1);
 	}
 
+	cout << "在点云中的点数："<< inliers->indices.size() << endl;
+
+	std::cerr << "Model coefficients: " << coefficients->values[0] << " "
+		<< coefficients->values[1] << " "
+		<< coefficients->values[2] << " "
+		<< coefficients->values[3] << std::endl;
 }
