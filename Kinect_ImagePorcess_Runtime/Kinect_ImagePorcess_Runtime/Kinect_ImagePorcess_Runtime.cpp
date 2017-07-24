@@ -277,7 +277,7 @@ int Mapping_Color_To_Skeletion(void)
 
 	if (S_OK == hr)
 	{
-		cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
+		//cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
 
 		for (int k = 0; k < 640 * 480; k++)
 		{
@@ -286,7 +286,7 @@ int Mapping_Color_To_Skeletion(void)
 			scr_cloud->points[k].z = Color_Mapping_Skeletion_3D[k].z;
 		}
 
-		Normals_Process();			// 进行点云的法线处理
+		//Normals_Process();			// 进行点云的法线处理
 		Plane_segmentation();		// 割离平面，平面分割
 	}
 	else
@@ -362,7 +362,7 @@ void Normals_Process()
 //-------------------------------点云平面分割-------------------------------------------- 
 void Plane_segmentation()
 {
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);		// 模型参数
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 	// Create the segmentation object
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -382,7 +382,7 @@ void Plane_segmentation()
 		//return (-1);
 	}
 
-	cout << "在点云中的点数："<< inliers->indices.size() << endl;
+	cout << "The Point Number in PCL Cloud："<< inliers->indices.size() << endl;
 
 	std::cerr << "Model coefficients: " << coefficients->values[0] << " "
 		<< coefficients->values[1] << " "
