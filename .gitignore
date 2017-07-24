@@ -50,3 +50,5 @@ Temporary Items
 *.sln.~u
 *.ipch
 *.sdf
+*.suo
+Kinect_ImagePorcess_Runtime/.vs/Kinect_ImagePorcess_Runtime/v14/.suo
