@@ -26,6 +26,7 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/cloud_viewer.h> 
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/bilateral.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
 // 解决vtk编译出现的错误
@@ -44,12 +45,16 @@ int Color_Process(HANDLE h);					// 彩色图处理程序
 int Mapping_Color_To_Skeletion(void);			// 彩色图向摄像头坐标系的位置转换
 void PCLView();									// 输出PCL数据流
 void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
+void RadiusOutlierRemoval();					// 进行半径滤波处理，去除离群点
+//void Cloud_BilateralFilter();						// 双边滤波
 
 int i = 0;										// 保存彩色图的序号
 int PCD_Number = 0;								// 保存PCD点云的序号
 Mat Copy_Color;
+Color_Image_Pixel Color_Pixel_Data[640*480];	// 保存彩色图像信息
 
-PointCloud<pcl::PointXYZ>::Ptr scr_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+PointCloud<pcl::PointXYZ>::Ptr src_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+PointCloud<pcl::PointXYZRGB>::Ptr src_cloud1(new pcl::PointCloud<pcl::PointXYZRGB>);
 PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
 VoxelGrid<pcl::PointXYZ>sor;  //创建滤波对象
 
@@ -73,15 +78,16 @@ int main(int argc, char * argv[])
 			Color_Process(m_pVideoStreamHandle);
 			Depth_Process(m_pDepthStreamHandle);
 			update++;
-			if (!viewer->wasStopped() && update == 5)
-			{
-				sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
-				sor.setLeafSize(0.03f, 0.03f, 0.03f);           //设置滤波时创建的体素大小为1cm立方体
-				sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
+			//if (!viewer->wasStopped() && update == 1)
+			//{
+			//	sor.setInputCloud(src_cloud);                  //设置需要过滤的点云给滤波对象
+			//	sor.setLeafSize(0.03f, 0.03f, 0.03f);          //设置滤波时创建的体素大小为1cm立方体
+			//	sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
 
-				viewer->updatePointCloud(cloud_filtered, "cloud");
-				update = 0;
-			}
+			viewer->updatePointCloud(src_cloud, "Cloud_Filter");
+			viewer->updatePointCloud(src_cloud1, "src_cloud");
+				//update = 0;
+			//}
 
 			if (PCD_Number >1) 
 			{
@@ -188,6 +194,20 @@ int Color_Process(HANDLE h)
 	if (LockedRect.Pitch != 0)
 	{
 		BYTE* pBuffer = (BYTE*)LockedRect.pBits;					// 按位存储的彩色图片
+
+		for (int i = 0; i<cColorHeight; i++)
+		{   
+			uchar *pBuffer1 = (uchar*)(LockedRect.pBits) + i * LockedRect.Pitch;
+			for (int j = 0; j<cColorWidth; j++)
+			{
+				//src_cloud1->points[i * 640 + j].x = i;
+				//src_cloud1->points[i * 640 + j].y = j;
+				src_cloud1->points[i * 640 + j].b = uint8_t(pBuffer1[4 * j]);
+				src_cloud1->points[i * 640 + j].g = uint8_t(pBuffer1[4 * j+1]);
+				src_cloud1->points[i * 640 + j].r = uint8_t(pBuffer1[4 * j+2]);
+			}
+		}
+
 		
 		//OpenCV显示彩色视频
 		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);		// 定义画布，说明彩色图片是8位4通道，也就是一个像素占8*4/8=4个字节
@@ -318,21 +338,33 @@ int Mapping_Color_To_Skeletion(void)
 		return -1;
 	}
 
-	hr = pMapper->MapColorFrameToSkeletonFrame(NUI_IMAGE_TYPE_COLOR,colorResolution,depthResolution, 640 * 480, Pixel_Depth, 640 * 480, Color_Mapping_Skeletion_3D);
-	
+	hr = pMapper->MapColorFrameToSkeletonFrame(NUI_IMAGE_TYPE_COLOR, colorResolution, depthResolution, 640 * 480, Pixel_Depth, 640 * 480, Color_Mapping_Skeletion_3D);
+
 	if (S_OK == hr)
-	{	
-		cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
+	{
+		//cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
 
 		for (int k = 0; k < 640 * 480; k++)
 		{
-			scr_cloud->points[k].x = Color_Mapping_Skeletion_3D[k].x;
-			scr_cloud->points[k].y = Color_Mapping_Skeletion_3D[k].y;
-			scr_cloud->points[k].z = Color_Mapping_Skeletion_3D[k].z;
+			src_cloud->points[k].x = Color_Mapping_Skeletion_3D[k].x;
+			src_cloud->points[k].y = Color_Mapping_Skeletion_3D[k].y;
+			src_cloud->points[k].z = Color_Mapping_Skeletion_3D[k].z;
+			src_cloud1->points[k].x = Color_Mapping_Skeletion_3D[k].x;
+			src_cloud1->points[k].y = Color_Mapping_Skeletion_3D[k].y;
+			src_cloud1->points[k].z = Color_Mapping_Skeletion_3D[k].z;
 		}
 
+		//Cloud_BilateralFilter();
+
 		int c = waitKey(10);										// 等待键盘输入
-		if (c == 'p' || c == 'P') 
+		if (c == 'c' || c == 'C')
+		{
+			pcl::PCDWriter writer;
+			writer.write<pcl::PointXYZRGB>("Color_PCD.pcd", *src_cloud1, false);
+		}
+
+		//int c = waitKey(10);										// 等待键盘输入
+		if (c == 'p' || c == 'P')
 		{
 			pcl::PCDWriter writer;
 			writer.write<pcl::PointXYZ>(PCDFile[PCD_Number], *cloud_filtered, false);
@@ -353,26 +385,59 @@ int Mapping_Color_To_Skeletion(void)
 	//cout << "彩色图中心点在摄像头坐标系中的位置:  [ "<< 1000*Color_Mapping_Skeletion_3D[100*640+319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[100 * 640 + 319].z << "mm ]" << endl;
 	//Getting_Pixel_AfterMapping();
 	return 0;
-
-
 }
+
+
+//void Cloud_BilateralFilter()					// 针对有序点云的双边滤波
+//{
+//	pcl::BilateralFilter<pcl::PointXYZ> bf;
+//	//pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+//	bf.setInputCloud(src_cloud);
+//	//bf.setSearchMethod(tree);
+//	bf.setHalfSize(5);
+//	bf.setStdDev(0.03);
+//	bf.filter(*cloud_filtered);
+//}
 
 void PCLView()
 {
-	scr_cloud->width = 640 * 480;
-	scr_cloud->height = 1;
-	scr_cloud->is_dense = FALSE;
-	scr_cloud->points.resize(scr_cloud->width * scr_cloud->height);
+	// 点位点云初始化
+	src_cloud->width = 640;
+	src_cloud->height = 480;
+	src_cloud->is_dense = FALSE;
+	src_cloud->points.resize(src_cloud->width * src_cloud->height);
 
+	// 彩色点云初始化
+	src_cloud1->width = 640;
+	src_cloud1->height = 480;
+	src_cloud1->is_dense = FALSE;
+	src_cloud1->points.resize(src_cloud1->width * src_cloud1->height);
 	
+	viewer->initCameraParameters();
+	int v1(0);
+	viewer->createViewPort(0.0, 0.0, 0.5, 1.0, v1);
+	viewer->setBackgroundColor(0, 0, 0, v1);
+	viewer->addText("Cloud_Filter", 10, 10, "v1 text", v1);
+	pcl::visualization::PointCloudGeometryHandlerXYZ<pcl::PointXYZ> point(src_cloud);
+	viewer->addPointCloud<pcl::PointXYZ>(src_cloud, "Cloud_Filter", v1);
+	int v2(0);
+	viewer->createViewPort(0.5, 0.0, 1.0, 1.0, v2);
+	viewer->setBackgroundColor(0, 0, 0, v2);
+	viewer->addText("Cloud_Color", 10, 10, "v2 text", v2);
+	pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(src_cloud1);
+	viewer->addPointCloud<pcl::PointXYZRGB>(src_cloud1, rgb, "src_cloud", v2);
+
+	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "Cloud_Filter",v1);
+	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "src_cloud",v2);
+
 	viewer->addCoordinateSystem(1.0);
-	//viewer->addPointCloud<pcl::PointXYZ>(scr_cloud, "cloud");
+	//viewer->addPointCloud<pcl::PointXYZ>(src_cloud, "cloud");
 
-	//sor.setInputCloud(scr_cloud);                      //设置需要过滤的点云给滤波对象
+	//sor.setInputCloud(src_cloud);                //设置需要过滤的点云给滤波对象
 	//sor.setLeafSize(0.3f, 0.3f, 0.3f);           //设置滤波时创建的体素大小为1cm立方体
-	//sor.filter(*cloud_filtered);                   //执行滤波处理，存储输出cloud_filtered
+	//sor.filter(*cloud_filtered);                 //执行滤波处理，存储输出cloud_filtered
 
-	viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
+	//viewer->addPointCloud<pcl::PointXYZ>(cloud_filtered, "cloud");
 	
 
 	//while (!viewer->wasStopped())
