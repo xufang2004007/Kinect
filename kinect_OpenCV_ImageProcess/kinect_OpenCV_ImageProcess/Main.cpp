@@ -63,7 +63,6 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualizati
 //-------------------------------主程序--------------------------------------------
 int main(int argc, char * argv[]) 
 {
-	PCLView();
 
 	int connect_hr = CreateFirstConnected();							// 进行连接检测程序
 	int update = 0;
@@ -73,6 +72,8 @@ int main(int argc, char * argv[])
 
 	if (connect_hr) 
 	{
+		PCLView();
+
 		while (1)
 		{
 			Color_Process(m_pVideoStreamHandle);
@@ -89,10 +90,10 @@ int main(int argc, char * argv[])
 				//update = 0;
 			//}
 
-			if (PCD_Number >1) 
+			/*if (PCD_Number >1) 
 			{
 				break;
-			}
+			}*/
 		}
 	}
 	NuiShutdown();
@@ -311,12 +312,13 @@ int Depth_Process(HANDLE h)
 		imshow("Depth", depthTmp);
 
 		int c = waitKey(1);//按下ESC结束  
-		if (c == 'q' || c == 'Q')
+		if (c == 'd' || c == 'D')
 		{
 			vector<int>compression_params;
 			compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);		// JPG格式图片的压缩级别    
 			compression_params.push_back(95);
 			imwrite("Depth.jpg", depthTmp, compression_params);
+			cout << "get kincet Depth Image" << endl;
 		}
 
 		Mapping_Color_To_Skeletion();
@@ -360,6 +362,7 @@ int Mapping_Color_To_Skeletion(void)
 		if (c == 'c' || c == 'C')
 		{
 			pcl::PCDWriter writer;
+			cout << "get Color PCD" << endl;
 			writer.write<pcl::PointXYZRGB>("Color_PCD.pcd", *src_cloud1, false);
 		}
 
@@ -367,7 +370,7 @@ int Mapping_Color_To_Skeletion(void)
 		if (c == 'p' || c == 'P')
 		{
 			pcl::PCDWriter writer;
-			writer.write<pcl::PointXYZ>(PCDFile[PCD_Number], *cloud_filtered, false);
+			writer.write<pcl::PointXYZ>(PCDFile[PCD_Number], *src_cloud, false);
 
 			cout << "Get [ " << PCD_Number + 1 << " ] PCD File" << endl;
 			PCD_Number++;
@@ -430,7 +433,7 @@ void PCLView()
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "Cloud_Filter",v1);
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "src_cloud",v2);
 
-	viewer->addCoordinateSystem(1.0);
+	viewer->addCoordinateSystem(0.2);
 	//viewer->addPointCloud<pcl::PointXYZ>(src_cloud, "cloud");
 
 	//sor.setInputCloud(src_cloud);                //设置需要过滤的点云给滤波对象
