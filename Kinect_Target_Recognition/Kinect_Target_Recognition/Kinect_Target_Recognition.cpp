@@ -3,6 +3,11 @@
 // 2、将彩色图像和深度图像都转化成摄像头坐标下的3D位置信息，可以不用做内参标定
 // 3、根据目标物的方位生成机器人路径规划；
 // 4、最终生成机器人的路径规划多项式系数，并完成与TwinCAT的数据交互
+
+// ***** 注意事项 ****
+// 1、Kinect获得的彩色图像格式为CV_8UC4，而在目标识别程序中的图像要求为CV_8UC3，因此需要进行图像格式的转换
+//    图像格式转换利用了图像通道分离的算法，引入三通道模板，将4通道的图像通道分离之后赋值给3通道图像的各个通道可以实现
+// 2、Target_Recognition函数最后添加waitKey(0)，用于测试用途，在实时算法中需要剔除
 //---------------------------------------------------------------------------------
 
 //----------------------------【windows头文件】------------------------------------
@@ -430,7 +435,7 @@ int Target_Recoginition(Mat Color_Image)
 	//Hough变换************************************************
 	int accumulate;   // Hough空间最大累积量
 	Hough_Ellipse myellipse;
-	//Mat result(src.size(), CV_8UC3, Scalar(0));
+	Mat result(src.size(), CV_8UC3, Scalar(0));
 
 	cout << "-----------开始进行霍夫变换椭圆检测--------------" << endl;
 
@@ -450,7 +455,7 @@ int Target_Recoginition(Mat Color_Image)
 			if (accumulate >= contours[i].size()*0.3)    // 判断是否超过给定阈值，判断是否为椭圆
 			{
 				Ellipse_Data = myellipse.get_data_Ellipse();
-				//result = myellipse.draw_Eliipse(src);
+				result = myellipse.draw_Eliipse(src);
 			}
 			else
 			{
@@ -466,9 +471,14 @@ int Target_Recoginition(Mat Color_Image)
 		}
 	}
 
+	namedWindow("Hough_result", CV_WINDOW_AUTOSIZE);
+	imshow("Hough_result", result);
+
 	finish = clock();
 	totaltime = (double)(finish - start) / CLOCKS_PER_SEC;
 	cout << "\n此程序的运行时间为" << totaltime << "秒！" << endl;
+
+	waitKey(0);		// 测试用
 	
 	return 1;
 }
@@ -770,6 +780,7 @@ Mat ImageEdgeRemoveBackground(Mat & inputImage)
 }
 
 //--------------------------------【图像格式转换】------------------------------------------
+//**** 将srcImage的格式转换成Refer_Image的格式
 Mat Image_Format_Conversion(Mat & srcImage, Mat & Refer_Image)
 {
 	Mat Image_back;

@@ -48,6 +48,8 @@ void Getting_Pixel_AfterMapping();				// 汇总深度图匹配到彩色图后的像素点位信息
 void RadiusOutlierRemoval();					// 进行半径滤波处理，去除离群点
 //void Cloud_BilateralFilter();						// 双边滤波
 
+Mat Image_Format_Conversion(Mat & srcImage, Mat & Refer_Image);
+
 int i = 0;										// 保存彩色图的序号
 int PCD_Number = 0;								// 保存PCD点云的序号
 Mat Copy_Color;
@@ -214,6 +216,14 @@ int Color_Process(HANDLE h)
 		Mat temp(cColorHeight, cColorWidth, CV_8UC4, pBuffer);		// 定义画布，说明彩色图片是8位4通道，也就是一个像素占8*4/8=4个字节
 		temp.copyTo(Copy_Color);
 		imshow("Color", temp);
+
+		Mat g_resultImage;
+		g_resultImage.create(480, 640, CV_8UC3);
+
+		// 图片格式转换测试
+		Mat Color_Image423 = Image_Format_Conversion(Copy_Color, g_resultImage);
+		namedWindow("4通道换3通道转换");
+		imshow("4通道换3通道转换", Color_Image423);
 
 		int c = waitKey(10);										// 等待键盘输入
 		if (c == 'q' || c == 'Q')									// 若按键Q，则保存彩色图	
@@ -493,3 +503,22 @@ void PCLView()
 //	imshow("show", jshow);
 //}
 	//cout << "匹配后240行320列处的深度："<< Depth_Mapping_Color_3D[239 * 640 + 319].depth << endl;
+
+Mat Image_Format_Conversion(Mat & srcImage, Mat & Refer_Image)
+{
+	Mat Image_back;
+	vector<Mat> channels_4;
+	vector<Mat> channels_3;
+
+	split(srcImage, channels_4);
+	split(Refer_Image, channels_3);
+
+	for (int i = 0; i < Refer_Image.channels(); i++)
+	{
+		channels_3.at(i) = channels_4.at(i);
+	}
+
+	merge(channels_3, Image_back);
+
+	return Image_back;
+}
