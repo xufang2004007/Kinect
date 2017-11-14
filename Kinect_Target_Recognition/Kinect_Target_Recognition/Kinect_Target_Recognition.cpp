@@ -320,6 +320,7 @@ int Mapping_Color_To_Skeletion(void)
 		}
 		
 		cout << Color_Mapping_Skeletion_3D[Ellipse.point_center.y * 640 + Ellipse.point_center.x].x << "  "<< Color_Mapping_Skeletion_3D[Ellipse.point_center.y * 640 + Ellipse.point_center.x].y << "  " << Color_Mapping_Skeletion_3D[Ellipse.point_center.y * 640 + Ellipse.point_center.x].z << endl;
+		Sleep(5000);
 		//cout << "彩色图中心点在摄像头坐标系中的位置:  [ " << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].x << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].y << "mm ," << 1000 * Color_Mapping_Skeletion_3D[239 * 640 + 319].z << "mm ]" << endl;
 
 		//for (int k = 0; k < 640 * 480; k++)
@@ -471,14 +472,14 @@ int Target_Recoginition(Mat Color_Image)
 		}
 	}
 
-	namedWindow("Hough_result", CV_WINDOW_AUTOSIZE);
-	imshow("Hough_result", result);
+	//namedWindow("Hough_result", CV_WINDOW_AUTOSIZE);
+	//imshow("Hough_result", result);
 
 	finish = clock();
 	totaltime = (double)(finish - start) / CLOCKS_PER_SEC;
 	cout << "\n此程序的运行时间为" << totaltime << "秒！" << endl;
 
-	waitKey(0);		// 测试用
+	//waitKey(0);		// 测试用
 	
 	return 1;
 }

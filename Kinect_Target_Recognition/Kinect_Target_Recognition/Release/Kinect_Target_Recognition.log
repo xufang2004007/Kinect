@@ -1,4 +1,4 @@
-﻿生成启动时间为 2017/10/18 21:58:12。
+﻿生成启动时间为 2017/11/13 10:11:01。
      1>项目“E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Target_Recognition\Kinect_Target_Recognition\Kinect_Target_Recognition.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /I"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_ImagePorcess_Runtime\inc" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Yu"stdafx.h" /Fp"Release\Kinect_Target_Recognition.pch" /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Kinect_Target_Recognition.cpp
@@ -12,9 +12,9 @@
      1>e:\research\mobile welding robot\control\kinect\kinect_target_recognition\kinect_target_recognition\Ellipse.cpp(50): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
      1>e:\research\mobile welding robot\control\kinect\kinect_target_recognition\kinect_target_recognition\Ellipse.cpp(65): warning C4244: “return”: 从“double”转换到“int”，可能丢失数据
      1>e:\research\mobile welding robot\control\kinect\kinect_target_recognition\kinect_target_recognition\Ellipse.cpp(83): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
-     1>Kinect_Target_Recognition.cpp(428): warning C4018: “<”: 有符号/无符号不匹配
-     1>Kinect_Target_Recognition.cpp(441): warning C4018: “<”: 有符号/无符号不匹配
-     1>Kinect_Target_Recognition.cpp(673): warning C4244: “参数”: 从“double”转换到“unsigned int”，可能丢失数据
+     1>Kinect_Target_Recognition.cpp(430): warning C4018: “<”: 有符号/无符号不匹配
+     1>Kinect_Target_Recognition.cpp(443): warning C4018: “<”: 有符号/无符号不匹配
+     1>Kinect_Target_Recognition.cpp(675): warning C4244: “参数”: 从“double”转换到“unsigned int”，可能丢失数据
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Target_Recognition\Release\Kinect_Target_Recognition.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_ImagePorcess_Runtime\lib\x86" opencv_calib3d2413.lib opencv_contrib2413.lib opencv_core2413.lib opencv_features2d2413.lib opencv_flann2413.lib opencv_gpu2413.lib opencv_haartraining_engine.lib opencv_highgui2413.lib opencv_imgproc2413.lib opencv_legacy2413.lib opencv_ml2413.lib opencv_nonfree2413.lib opencv_objdetect2413.lib opencv_ocl2413.lib opencv_photo2413.lib opencv_stitching2413.lib opencv_superres2413.lib opencv_ts2413.lib opencv_video2413.lib opencv_videostab2413.lib opencv_world2413.lib kinect10.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Target_Recognition\Release\Kinect_Target_Recognition.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\RESEARCH\mobile welding robot\control\Kinect\Kinect_Target_Recognition\Release\Kinect_Target_Recognition.lib" /MACHINE:X86 /SAFESEH Release\Ellipse.obj
          Release\Kinect_Target_Recognition.obj
@@ -29,4 +29,4 @@
 
 已成功生成。
 
-已用时间 00:00:02.23
+已用时间 00:00:02.92
