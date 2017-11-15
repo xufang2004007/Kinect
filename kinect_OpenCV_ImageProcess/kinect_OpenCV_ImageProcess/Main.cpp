@@ -386,6 +386,11 @@ int Mapping_Color_To_Skeletion(void)
 			PCD_Number++;
 		}
 
+		if (PCD_Number >= sizeof(PCDFile) / sizeof(PCDFile[0]))
+		{
+			PCD_Number = 0;
+		}
+
 	}
 	else
 	{

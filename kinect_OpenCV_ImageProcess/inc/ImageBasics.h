@@ -61,5 +61,5 @@ Vector4						Color_Mapping_Skeletion_3D[cDepthWidth*cDepthHeight] = { 0,0,0 };		
 
 
 //---ColorImage保存名称数组-------------------------------
-string ImageName[10] = { "Kinect1.jpg","Kinect2.jpg", "Kinect3.jpg", "Kinect4.jpg", "Kinect5.jpg", "Kinect6.jpg", "Kinect7.jpg", "Kinect8.jpg", "Kinect9.jpg", "Kinect10.jpg" };
-string PCDFile[10] = { "PCD1.pcd","PCD2.pcd","PCD3.pcd" ,"PCD4.pcd" ,"PCD5.pcd" ,"PCD6.pcd" ,"PCD7.pcd" ,"PCD8.pcd" ,"PCD9.pcd" ,"PCD10.pcd"};
+string ImageName[20] = { "Kinect1.jpg","Kinect2.jpg", "Kinect3.jpg", "Kinect4.jpg", "Kinect5.jpg", "Kinect6.jpg", "Kinect7.jpg", "Kinect8.jpg", "Kinect9.jpg", "Kinect10.jpg","Kinect11.jpg","Kinect12.jpg","Kinect13.jpg","Kinect14.jpg","Kinect15.jpg","Kinect16.jpg","Kinect17.jpg","Kinect18.jpg","Kinect19.jpg","Kinect20.jpg" };
+string PCDFile[20] = { "PCD1.pcd","PCD2.pcd","PCD3.pcd" ,"PCD4.pcd" ,"PCD5.pcd" ,"PCD6.pcd" ,"PCD7.pcd" ,"PCD8.pcd" ,"PCD9.pcd" ,"PCD10.pcd","PCD11.pcd" ,"PCD12.pcd" ,"PCD13.pcd" ,"PCD14.pcd" ,"PCD15.pcd","PCD16.pcd","PCD17.pcd","PCD18.pcd","PCD19.pcd","PCD20.pcd" };
